@@ -1,6 +1,7 @@
 /**
- * AutoType Firefox Extension - Popup Script
+ * AutoType Brave Extension - Popup Script
  * Educational tool for learning web automation concepts
+ * Optimized for Brave browser with privacy-first features
  */
 
 class AutoTypePopup {

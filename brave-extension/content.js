@@ -1,6 +1,7 @@
 /**
- * AutoType Firefox Extension - Content Script
+ * AutoType Brave Extension - Content Script
  * This script runs on web pages to detect text and simulate typing
+ * Optimized for Brave browser with Brave Shields compatibility
  */
 
 class AutoTypeContent {

@@ -1,6 +1,7 @@
 /**
- * AutoType Edge Extension - Background Script
+ * AutoType Brave Extension - Background Script
  * Handles extension lifecycle and cross-tab communication
+ * Service Worker optimized for Brave browser
  */
 
 class AutoTypeBackground {
