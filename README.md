@@ -60,6 +60,15 @@ opera-extension/            # Opera extension (Manifest V3)
 ├── background.js          # Service Worker background script
 ├── icons/                 # Extension icons
 └── README.md              # Opera-specific documentation
+
+brave-extension/            # Brave extension (Manifest V3)
+├── manifest.json          # Extension configuration (Manifest V3, Brave-optimized)
+├── popup.html             # Dual-mode user interface
+├── popup.js               # UI logic with Chrome API
+├── content.js             # Core functionality with Chrome API
+├── background.js          # Service Worker background script
+├── icons/                 # Extension icons
+└── README.md              # Brave-specific documentation
 ```
 
 ## 🔧 Installation
@@ -93,6 +102,15 @@ opera-extension/            # Opera extension (Manifest V3)
 6. Select the `opera-extension/` folder
 7. The AutoType extension icon will appear in your toolbar
 
+### **For Brave**
+1. Clone or download this repository
+2. Navigate to the `brave-extension/` folder
+3. Open Brave and go to `brave://extensions`
+4. Enable "Developer mode" (toggle in the top right)
+5. Click "Load unpacked"
+6. Select the `brave-extension/` folder
+7. The AutoType extension icon will appear in your toolbar
+
 ### **Step 4: Get API Key (For AI Features)**
 - **Option A**: [Google AI Studio](https://makersuite.google.com/app/apikey) (Gemini API)
 - **Option B**: [Vertex AI Studio](https://console.cloud.google.com/vertex-ai/studio) (Google Cloud)
@@ -118,18 +136,20 @@ opera-extension/            # Opera extension (Manifest V3)
 
 All extensions provide identical functionality but use different APIs:
 
-| Feature | Firefox Extension | Edge/Chrome Extension | Opera Extension |
-|---------|------------------|----------------------|-----------------|
-| Manifest Version | V2 | V3 | V3 |
-| API | `browser.*` (WebExtensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) |
-| Background Script | Background page/script | Service Worker | Service Worker |
-| Compatible Browsers | Firefox 88+ | Edge 88+, Chrome 88+, Brave | Opera 74+, Opera GX 74+ |
-| Installation Method | `about:debugging` | `edge://extensions` or `chrome://extensions` | `opera://extensions` |
+| Feature | Firefox Extension | Edge/Chrome Extension | Opera Extension | Brave Extension |
+|---------|------------------|----------------------|-----------------|-----------------|
+| Manifest Version | V2 | V3 | V3 | V3 |
+| API | `browser.*` (WebExtensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) |
+| Background Script | Background page/script | Service Worker | Service Worker | Service Worker |
+| Compatible Browsers | Firefox 88+ | Edge 88+, Chrome 88+ | Opera 74+, Opera GX 74+ | Brave 1.19+ |
+| Installation Method | `about:debugging` | `edge://extensions` or `chrome://extensions` | `opera://extensions` | `brave://extensions` |
+| Special Features | Standard Firefox | Standard Chromium | Opera-optimized | Privacy-focused, Brave Shields |
 
 **Choose the extension based on your browser:**
 - Use `firefox-extension/` for Firefox
-- Use `edge-extension/` for Edge, Chrome, Brave, or other Chromium-based browsers
+- Use `edge-extension/` for Edge or Chrome
 - Use `opera-extension/` for Opera and Opera GX (optimized for Opera-specific features)
+- Use `brave-extension/` for Brave (optimized for privacy and Brave Shields compatibility)
 
 ## 🛡️ Safety Features
 
