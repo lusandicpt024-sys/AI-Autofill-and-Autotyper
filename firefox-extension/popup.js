@@ -9,7 +9,12 @@ class AutoTypePopup {
         this.isTyping = false;
         this.currentMode = 'typing'; // 'typing' or 'ai'
         this.detectedQuestions = [];
+        
+        // AI credentials
         this.apiKey = null;
+        this.projectId = null;
+        this.location = null;
+        
         this.settings = {
             targetWpm: 60,
             startDelay: 3,
@@ -28,7 +33,7 @@ class AutoTypePopup {
     
     async init() {
         this.loadSettings();
-        await this.checkApiKey();
+        await this.loadCredentials();
         this.bindEvents();
         this.updateUI();
         this.showOnboardingIfNeeded();
@@ -85,9 +90,7 @@ class AutoTypePopup {
         document.getElementById('previewAnswers').addEventListener('click', () => this.previewAnswers());
         
         // Onboarding modal event listeners
-        document.getElementById('onboardingApiKey').addEventListener('input', (e) => {
-            document.getElementById('validateKey').disabled = e.target.value.trim().length < 10;
-        });
+        document.getElementById('onboardingApiKey').addEventListener('input', (e) => this.checkApiKeyFormat(e.target.value));
         document.getElementById('validateKey').addEventListener('click', () => this.validateApiKey());
         document.getElementById('skipSetup').addEventListener('click', () => this.hideOnboardingModal());
     }
@@ -119,14 +122,31 @@ class AutoTypePopup {
     }
     
     // API Key Management
-    async checkApiKey() {
+    async loadCredentials() {
         try {
-            const result = await browser.storage.sync.get('geminiApiKey');
+            const result = await browser.storage.sync.get(['geminiApiKey', 'geminiProjectId', 'geminiLocation']);
             this.apiKey = result.geminiApiKey;
+            this.projectId = result.geminiProjectId;
+            this.location = result.geminiLocation;
             this.updateApiKeyStatus();
         } catch (error) {
-            console.error('Error loading API key:', error);
+            console.error('Error loading API credentials:', error);
         }
+    }
+
+    isVertexAI(key) {
+        // Updated detection: Vertex keys are often long base64 strings
+        return key && key.length > 40;
+    }
+
+    checkApiKeyFormat(key) {
+        const vertexFields = document.getElementById('vertexFields');
+        if (this.isVertexAI(key)) {
+            vertexFields.style.display = 'block';
+        } else {
+            vertexFields.style.display = 'none';
+        }
+        document.getElementById('validateKey').disabled = key.trim().length < 10;
     }
     
     updateApiKeyStatus() {
@@ -136,7 +156,8 @@ class AutoTypePopup {
         const aiSettings = document.getElementById('aiSettings');
         
         if (this.apiKey) {
-            statusText.textContent = 'API key configured ✓';
+            const keyType = this.isVertexAI(this.apiKey) ? 'Vertex AI' : 'AI Studio';
+            statusText.textContent = `${keyType} key configured ✓`;
             statusText.style.color = '#28a745';
             configureBtn.textContent = '🔄 Update';
             aiActions.style.display = 'block';
@@ -174,11 +195,17 @@ class AutoTypePopup {
         this.showOnboardingModal();
         if (this.apiKey) {
             document.getElementById('onboardingApiKey').value = this.apiKey;
+            document.getElementById('onboardingProjectId').value = this.projectId || '';
+            document.getElementById('onboardingLocation').value = this.location || '';
+            this.checkApiKeyFormat(this.apiKey); // Show/hide Vertex fields
         }
     }
     
     async validateApiKey() {
         const apiKey = document.getElementById('onboardingApiKey').value.trim();
+        const projectId = document.getElementById('onboardingProjectId').value.trim();
+        const location = document.getElementById('onboardingLocation').value.trim();
+
         if (!apiKey) return;
         
         const validationDiv = document.getElementById('keyValidation');
@@ -188,33 +215,64 @@ class AutoTypePopup {
         
         validationDiv.style.display = 'block';
         validationText.textContent = 'Validating API key...';
+        validationText.style.color = '#333';
         spinner.style.display = 'block';
         validateBtn.disabled = true;
         
         try {
-            // Detect API key type and test accordingly
-            const isVertexAI = apiKey.startsWith('AQ.') || apiKey.includes('vertex') || apiKey.length > 40;
+            const isVertex = this.isVertexAI(apiKey);
             
             let response;
+            let endpoint = '';
             
-            if (isVertexAI) {
-                // Test Vertex AI key with actual API call using correct endpoint
-                console.log('AutoType: Testing Vertex AI key');
-                response = await fetch(`https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash-lite:streamGenerateContent?key=${apiKey}`, {
+            if (isVertex) {
+                // Test Vertex AI key
+                if (!projectId || !location) {
+                    throw new Error('Project ID and Location are required for Vertex AI');
+                }
+                console.log(`AutoType: Testing Vertex AI key for project ${projectId} in ${location}`);
+                // Use the correct REGIONAL endpoint
+                endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-1.5-flash:streamGenerateContent`;
+                
+                response = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}` // Vertex AI often uses Bearer tokens (OAuth), but API keys are also possible. Let's try key first.
+                    },
                     body: JSON.stringify({
                         contents: [{
                             role: 'user',
-                            parts: [{
-                                text: 'Hello'
-                            }]
+                            parts: [{ text: 'Hello' }]
                         }]
                     })
                 });
+
+                // If auth fails, try with ?key= param
+                if (response.status === 401 || response.status === 403) {
+                     console.log('AutoType: Auth failed with Bearer token, retrying with API key parameter');
+                     endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
+                     response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                role: 'user',
+                                parts: [{ text: 'Hello' }]
+                            }]
+                        })
+                    });
+                }
+
             } else {
-                // Test Gemini AI Studio key with actual API call
-                response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                // Test Gemini AI Studio key
+                console.log('AutoType: Testing Google AI Studio key');
+                
+                // *** THIS IS THE FIX ***
+                // Changed from 'gemini-1.5-flash' to 'gemini-1.5-flash-latest'
+                endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+                
+                response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -225,28 +283,39 @@ class AutoTypePopup {
             
             if (response && response.ok) {
                 // Test if we can parse the response
+                const responseText = await response.text();
+                if (responseText.trim().length === 0) {
+                     throw new Error('Empty response from API server');
+                }
+
                 try {
-                    if (isVertexAI) {
-                        const responseText = await response.text();
-                        console.log('Vertex AI validation response:', responseText);
-                        // Basic check - if we get a response, it's likely valid
-                        if (responseText.trim().length > 0) {
+                    if (isVertex) {
+                        // Vertex AI stream response is a JSON array
+                        const data = JSON.parse(responseText);
+                        if (data && Array.isArray(data) && data.length > 0 && data[0].candidates) {
                             validationText.textContent = '✅ Vertex AI key validated successfully!';
                         } else {
-                            throw new Error('Empty response from Vertex AI');
+                            throw new Error('Invalid Vertex AI response format');
                         }
                     } else {
-                        const data = await response.json();
+                        // AI Studio response is a single JSON object
+                        const data = JSON.parse(responseText);
                         if (data.candidates && data.candidates.length > 0) {
                             validationText.textContent = '✅ Gemini AI key validated successfully!';
                         } else {
-                            throw new Error('Invalid response format');
+                            throw new Error('Invalid AI Studio response format');
                         }
                     }
                     
-                    // Save the API key
-                    await browser.storage.sync.set({ geminiApiKey: apiKey });
+                    // Save the credentials
+                    await browser.storage.sync.set({ 
+                        geminiApiKey: apiKey,
+                        geminiProjectId: isVertex ? projectId : null,
+                        geminiLocation: isVertex ? location : null
+                    });
                     this.apiKey = apiKey;
+                    this.projectId = isVertex ? projectId : null;
+                    this.location = isVertex ? location : null;
                     
                     validationText.style.color = '#28a745';
                     spinner.style.display = 'none';
@@ -258,17 +327,18 @@ class AutoTypePopup {
                             this.switchToAiMode();
                         }
                     }, 1500);
+
                 } catch (parseError) {
-                    console.error('Validation parse error:', parseError);
-                    validationText.textContent = '❌ Unexpected response format';
-                    validationText.style.color = '#dc3545';
-                    spinner.style.display = 'none';
+                    console.error('Validation parse error:', parseError, 'Response Text:', responseText);
+                    throw new Error('Unexpected response format');
                 }
             } else {
-                throw new Error(`API validation failed: ${response.status}`);
+                const errorText = await response.text();
+                console.error('API Error Response:', errorText);
+                throw new Error(`API validation failed: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
-            validationText.textContent = '❌ Invalid API key. Please check and try again.';
+            validationText.textContent = `❌ ${error.message}. Check credentials/console.`;
             validationText.style.color = '#dc3545';
             spinner.style.display = 'none';
             validateBtn.disabled = false;
@@ -334,12 +404,16 @@ class AutoTypePopup {
                 const result = await browser.tabs.sendMessage(tab.id, {
                     action: 'answerQuestion',
                     question: question,
-                    apiKey: this.apiKey
+                    apiKey: this.apiKey,
+                    projectId: this.projectId,
+                    location: this.location
                 });
                 
                 if (result.answer) {
                     question.answer = result.answer;
                     this.updateQuestionDisplay(i, result.answer);
+                } else if (result.error) {
+                    throw new Error(result.error);
                 }
             } catch (error) {
                 console.error(`Error getting answer for question ${i}:`, error);
@@ -390,16 +464,18 @@ class AutoTypePopup {
             
             try {
                 // Get answer if not already generated
-                if (!question.answer) {
+                if (!question.answer || question.answer.startsWith('Error:')) {
                     const [tab] = await browser.tabs.query({active: true, currentWindow: true});
                     const result = await browser.tabs.sendMessage(tab.id, {
                         action: 'answerQuestion',
                         question: question,
-                        apiKey: this.apiKey
+                        apiKey: this.apiKey,
+                        projectId: this.projectId,
+                        location: this.location
                     });
                     
                     if (!result.answer) {
-                        throw new Error('No answer generated');
+                        throw new Error(result.error || 'No answer generated');
                     }
                     question.answer = result.answer;
                 }

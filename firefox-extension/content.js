@@ -207,9 +207,11 @@ class AutoTypeContent {
             return `#${element.id}`;
         }
         
-        if (element.className) {
-            const classes = element.className.split(' ').join('.');
-            return `${element.tagName.toLowerCase()}.${classes}`;
+        if (element.className && typeof element.className === 'string') {
+            const classes = element.className.split(' ').filter(c => c).join('.');
+            if(classes) {
+                return `${element.tagName.toLowerCase()}.${classes}`;
+            }
         }
         
         // Generate path-based selector as fallback
@@ -227,19 +229,25 @@ class AutoTypeContent {
         return selector;
     }
     
-    async queryGeminiAPI(question, context, apiKey) {
+    async queryGeminiAPI(question, context, apiKey, projectId, location) {
         const prompt = `Context: ${context}\n\nQuestion: ${question}\n\nProvide a direct, concise answer suitable for typing into a form field. Keep it under 500 characters unless it's clearly an essay question.`;
         
         try {
-            // Detect if this is a Vertex AI key (starts with specific patterns)
-            const isVertexAI = apiKey.startsWith('AQ.') || apiKey.includes('vertex') || apiKey.length > 40;
+            // Detect if this is a Vertex AI key
+            const isVertexAI = apiKey && apiKey.length > 40;
             
             let response;
+            let endpoint = '';
             
             if (isVertexAI) {
                 // Use correct Vertex AI API endpoint
+                if (!projectId || !location) {
+                    throw new Error('Vertex AI requires Project ID and Location');
+                }
                 console.log('AutoType AI: Using Vertex AI endpoint');
-                response = await fetch(`https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash-lite:streamGenerateContent?key=${apiKey}`, {
+                endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
+                
+                response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -256,7 +264,12 @@ class AutoTypeContent {
             } else {
                 // Use Gemini AI Studio endpoint (original)
                 console.log('AutoType AI: Using Gemini AI Studio endpoint');
-                response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                
+                // *** THIS IS THE FIX ***
+                // Changed from 'gemini-1.5-flash' to 'gemini-1.5-flash-latest'
+                endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+
+                response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -276,28 +289,30 @@ class AutoTypeContent {
                 console.error('API Error Response:', errorText);
                 throw new Error(`API request failed: ${response.status} - ${errorText}`);
             }
+
+            const responseText = await response.text();
+            if (responseText.trim().length === 0) {
+                 throw new Error('Empty response from API server');
+            }
             
             if (isVertexAI) {
-                // Handle Vertex AI streaming response
-                const responseText = await response.text();
+                // *** FIX: Handle Vertex AI streaming response ***
+                // It returns a JSON array of response chunks.
                 console.log('Vertex AI Response:', responseText);
                 
-                // Parse streaming response (each line is a JSON object)
-                const lines = responseText.trim().split('\n');
                 let fullText = '';
-                
-                for (const line of lines) {
-                    if (line.trim()) {
-                        try {
-                            const data = JSON.parse(line);
-                            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                            if (text) {
-                                fullText += text;
-                            }
-                        } catch (e) {
-                            console.warn('Could not parse line:', line);
+                try {
+                    const responseArray = JSON.parse(responseText);
+                    
+                    for (const chunk of responseArray) {
+                        const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (text) {
+                            fullText += text;
                         }
                     }
+                } catch (e) {
+                    console.error('Could not parse Vertex AI response array:', e, responseText);
+                    throw new Error('Failed to parse Vertex AI response');
                 }
                 
                 if (!fullText) {
@@ -305,9 +320,10 @@ class AutoTypeContent {
                 }
                 
                 return fullText.trim();
+
             } else {
                 // Handle regular Gemini AI Studio response
-                const data = await response.json();
+                const data = JSON.parse(responseText);
                 const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
                 
                 if (!answer) {
@@ -394,7 +410,9 @@ class AutoTypeContent {
                         const answer = await this.queryGeminiAPI(
                             message.question.text,
                             message.question.context,
-                            message.apiKey
+                            message.apiKey,
+                            message.projectId, // Pass Project ID
+                            message.location  // Pass Location
                         );
                         sendResponse({answer: answer});
                     } catch (error) {
@@ -756,7 +774,7 @@ class AutoTypeContent {
         inputField.click();
         
         // Clear existing content if it's an input/textarea
-        if (inputField.tagName === 'INPUT' || inputField.tagName === 'TEXTAREA') {
+        if (inputField.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
             inputField.value = '';
         } else if (inputField.contentEditable === 'true') {
             inputField.textContent = '';

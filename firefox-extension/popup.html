@@ -277,6 +277,25 @@
             font-size: 11px;
             color: #666;
         }
+
+        .modal-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            box-sizing: border-box; /* Add this */
+        }
+
+        #vertexFields {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+
+        #vertexFields input {
+            margin-bottom: 10px;
+        }
         
         .modal-footer {
             padding: 10px 20px 20px 20px;
@@ -363,13 +382,11 @@
         <p>Educational Automation Tool</p>
     </div>
     
-    <!-- Mode Switcher -->
     <div class="mode-switcher">
         <button id="typingMode" class="mode-btn active">🏃 Typing Test Mode</button>
         <button id="aiMode" class="mode-btn">🧠 AI Answer Mode</button>
     </div>
     
-    <!-- Typing Test Mode Panel (existing functionality) -->
     <div id="typingTestPanel" class="mode-panel">
         <div class="section">
         <h3>Quick Actions</h3>
@@ -440,10 +457,7 @@
             </div>
         </div>
     </div>
-    </div> <!-- End Typing Test Panel -->
-    
-    <!-- AI Answer Mode Panel -->
-    <div id="aiAnswerPanel" class="mode-panel" style="display: none;">
+    </div> <div id="aiAnswerPanel" class="mode-panel" style="display: none;">
         <div class="section">
             <h3>AI Setup</h3>
             <div id="apiKeyStatus" class="status-indicator">
@@ -493,7 +507,6 @@
         Use responsibly and only for learning purposes. Respect website terms of service.
     </div>
     
-    <!-- Onboarding Modal -->
     <div id="onboardingModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -510,10 +523,16 @@
                 </div>
                 
                 <div class="setup-step">
-                    <h3>🔑 Step 2: Enter Your API Key</h3>
-                    <input type="password" id="onboardingApiKey" placeholder="Paste your API key here (Google AI Studio or Vertex AI)..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <h3>🔑 Step 2: Enter Your Credentials</h3>
+                    <input type="password" id="onboardingApiKey" placeholder="Paste your API key here (Google AI Studio or Vertex AI)..." class="modal-input" style="margin-bottom: 10px;">
+                    
+                    <div id="vertexFields" style="display: none;">
+                        <input type="text" id="onboardingProjectId" placeholder="Enter your Google Cloud Project ID..." class="modal-input">
+                        <input type="text" id="onboardingLocation" placeholder="Enter Location (e.g., us-central1)..." class="modal-input">
+                    </div>
+                    
                     <div style="margin-top: 5px; font-size: 10px; color: #666;">
-                        🔒 Your API key is stored securely in your browser and never shared
+                        🔒 Your credentials are stored securely in your browser and never shared
                     </div>
                 </div>
                 
