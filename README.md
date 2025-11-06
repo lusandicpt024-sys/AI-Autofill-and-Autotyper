@@ -43,14 +43,23 @@ firefox-extension/          # Firefox extension (Manifest V2)
 ├── icons/                 # Extension icons
 └── README.md              # Firefox-specific documentation
 
-edge-extension/             # Edge/Chrome extension (Manifest V3)
+chrome-extension/           # Chrome extension (Manifest V3)
 ├── manifest.json          # Extension configuration (Manifest V3)
 ├── popup.html             # Dual-mode user interface
 ├── popup.js               # UI logic with Chrome API
 ├── content.js             # Core functionality with Chrome API
 ├── background.js          # Service Worker background script
 ├── icons/                 # Extension icons
-└── README.md              # Edge/Chrome-specific documentation
+└── README.md              # Chrome-specific documentation
+
+edge-extension/             # Edge extension (Manifest V3)
+├── manifest.json          # Extension configuration (Manifest V3)
+├── popup.html             # Dual-mode user interface
+├── popup.js               # UI logic with Chrome API
+├── content.js             # Core functionality with Chrome API
+├── background.js          # Service Worker background script
+├── icons/                 # Extension icons
+└── README.md              # Edge-specific documentation
 
 opera-extension/            # Opera extension (Manifest V3)
 ├── manifest.json          # Extension configuration (Manifest V3, Opera-optimized)
@@ -82,12 +91,19 @@ brave-extension/            # Brave extension (Manifest V3)
 6. Select `manifest.json` from the `firefox-extension/` folder
 7. The AutoType extension icon will appear in your toolbar
 
-### **For Edge/Chrome/Chromium Browsers**
+### **For Chrome**
+1. Clone or download this repository
+2. Navigate to the `chrome-extension/` folder
+3. Open Chrome and go to `chrome://extensions`
+4. Enable "Developer mode" (toggle in the top right)
+5. Click "Load unpacked"
+6. Select the `chrome-extension/` folder
+7. The AutoType extension icon will appear in your toolbar
+
+### **For Edge**
 1. Clone or download this repository
 2. Navigate to the `edge-extension/` folder
-3. Open your browser:
-   - **Edge**: Navigate to `edge://extensions`
-   - **Chrome**: Navigate to `chrome://extensions`
+3. Open Edge and go to `edge://extensions`
 4. Enable "Developer mode" (toggle in the top right)
 5. Click "Load unpacked"
 6. Select the `edge-extension/` folder
