@@ -2,6 +2,7 @@
 
 ## 🚀 Installation
 
+### For Firefox
 1. **Load Extension in Firefox**:
    - Open Firefox and navigate to `about:debugging`
    - Click "This Firefox" tab
@@ -9,6 +10,33 @@
    - Select `manifest.json` from the `firefox-extension` folder
 
 2. **Extension Icon**: Look for the AutoType icon in your Firefox toolbar
+
+### For Chrome
+1. **Load Extension in Chrome**:
+   - Open Chrome and navigate to `chrome://extensions`
+   - Enable "Developer mode" (toggle in top right)
+   - Click "Load unpacked"
+   - Select the `chrome-extension` folder
+
+2. **Extension Icon**: Look for the AutoType icon in your Chrome toolbar
+
+### For Edge
+1. **Load Extension in Edge**:
+   - Open Edge and navigate to `edge://extensions`
+   - Enable "Developer mode" (toggle in left sidebar)
+   - Click "Load unpacked"
+   - Select the `edge-extension` folder
+
+2. **Extension Icon**: Look for the AutoType icon in your Edge toolbar
+
+### For Opera
+1. **Load Extension in Opera**:
+   - Open Opera and navigate to `opera://extensions`
+   - Enable "Developer mode" (toggle in top right)
+   - Click "Load unpacked"
+   - Select the `opera-extension` folder
+
+2. **Extension Icon**: Look for the AutoType icon in your Opera toolbar
 
 ## 🔧 First-Time Setup
 
