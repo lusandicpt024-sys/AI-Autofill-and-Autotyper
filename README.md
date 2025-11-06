@@ -78,6 +78,15 @@ brave-extension/            # Brave extension (Manifest V3)
 ├── background.js          # Service Worker background script
 ├── icons/                 # Extension icons
 └── README.md              # Brave-specific documentation
+
+safari-extension/           # Safari extension (Manifest V3)
+├── manifest.json          # Extension configuration (Manifest V3, Safari-optimized)
+├── popup.html             # Dual-mode user interface
+├── popup.js               # UI logic with WebExtensions API
+├── content.js             # Core functionality with Safari compatibility
+├── background.js          # Service Worker background script
+├── icons/                 # Extension icons
+└── README.md              # Safari-specific documentation
 ```
 
 ## 🔧 Installation
@@ -127,6 +136,21 @@ brave-extension/            # Brave extension (Manifest V3)
 6. Select the `brave-extension/` folder
 7. The AutoType extension icon will appear in your toolbar
 
+### **For Safari**
+1. Clone or download this repository
+2. Navigate to the `safari-extension/` folder
+3. Install Xcode or Xcode Command Line Tools if not already installed
+4. Convert the extension using Safari's converter:
+   ```bash
+   xcrun safari-web-extension-converter --app-name "AutoType" .
+   ```
+5. Open the created Xcode project and build it (Cmd+R)
+6. Open Safari and go to Safari > Settings > Extensions
+7. Enable "AutoType Educational Tool" and grant necessary permissions
+8. The AutoType extension icon will appear in your toolbar
+
+**Note:** Safari requires extensions to be converted to Safari App Extension format. See `safari-extension/README.md` for detailed instructions.
+
 ### **Step 4: Get API Key (For AI Features)**
 - **Option A**: [Google AI Studio](https://makersuite.google.com/app/apikey) (Gemini API)
 - **Option B**: [Vertex AI Studio](https://console.cloud.google.com/vertex-ai/studio) (Google Cloud)
@@ -152,20 +176,21 @@ brave-extension/            # Brave extension (Manifest V3)
 
 All extensions provide identical functionality but use different APIs:
 
-| Feature | Firefox Extension | Edge/Chrome Extension | Opera Extension | Brave Extension |
-|---------|------------------|----------------------|-----------------|-----------------|
-| Manifest Version | V2 | V3 | V3 | V3 |
-| API | `browser.*` (WebExtensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) |
-| Background Script | Background page/script | Service Worker | Service Worker | Service Worker |
-| Compatible Browsers | Firefox 88+ | Edge 88+, Chrome 88+ | Opera 74+, Opera GX 74+ | Brave 1.19+ |
-| Installation Method | `about:debugging` | `edge://extensions` or `chrome://extensions` | `opera://extensions` | `brave://extensions` |
-| Special Features | Standard Firefox | Standard Chromium | Opera-optimized | Privacy-focused, Brave Shields |
+| Feature | Firefox Extension | Edge/Chrome Extension | Opera Extension | Brave Extension | Safari Extension |
+|---------|------------------|----------------------|-----------------|-----------------|------------------|
+| Manifest Version | V2 | V3 | V3 | V3 | V3 |
+| API | `browser.*` (WebExtensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (WebExtensions) |
+| Background Script | Background page/script | Service Worker | Service Worker | Service Worker | Service Worker |
+| Compatible Browsers | Firefox 88+ | Edge 88+, Chrome 88+ | Opera 74+, Opera GX 74+ | Brave 1.19+ | Safari 14+ (macOS 10.14.4+) |
+| Installation Method | `about:debugging` | `edge://extensions` or `chrome://extensions` | `opera://extensions` | `brave://extensions` | Xcode conversion required |
+| Special Features | Standard Firefox | Standard Chromium | Opera-optimized | Privacy-focused, Brave Shields | Native macOS integration, WebKit-optimized |
 
 **Choose the extension based on your browser:**
 - Use `firefox-extension/` for Firefox
 - Use `edge-extension/` for Edge or Chrome
 - Use `opera-extension/` for Opera and Opera GX (optimized for Opera-specific features)
 - Use `brave-extension/` for Brave (optimized for privacy and Brave Shields compatibility)
+- Use `safari-extension/` for Safari (optimized for macOS and WebKit, requires Xcode conversion)
 
 ## 🛡️ Safety Features
 
