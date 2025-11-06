@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Key Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        #results {
+            background: #f5f5f5;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 20px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        
+        .info-box {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .success {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔑 Gemini API Key Tester</h1>
+    
+    <div class="info-box">
+        <h3>📋 Your Current Info:</h3>
+        <p><strong>Project ID:</strong> <code>autotypeai-477407</code> ✅</p>
+        <p><strong>API Key:</strong> ❓ Need to get/verify this</p>
+    </div>
+    
+    <div class="form-group">
+        <label for="apiKey">API Key:</label>
+        <input type="password" id="apiKey" placeholder="Paste your Gemini API key here (starts with AIza...)">
+    </div>
+    
+    <div class="form-group">
+        <label for="projectId">Project ID (Optional for Google AI Studio keys):</label>
+        <input type="text" id="projectId" value="autotypeai-477407" placeholder="Your Google Cloud Project ID">
+    </div>
+    
+    <button onclick="testGoogleAIStudio()">Test Google AI Studio API</button>
+    <button onclick="testVertexAI()">Test Vertex AI (with Project)</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results">Enter your API key above and click a test button...</div>
+    
+    <div class="info-box">
+        <h3>🔗 Where to Get API Keys:</h3>
+        <p><strong>Google AI Studio:</strong> <a href="https://makersuite.google.com/app/apikey" target="_blank">Get API Key</a> (Recommended - easier setup)</p>
+        <p><strong>Google Cloud Console:</strong> <a href="https://console.cloud.google.com/apis/credentials?project=autotypeai-477407" target="_blank">Your Project Credentials</a></p>
+    </div>
+    
+    <script>
+        async function testGoogleAIStudio() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const resultsDiv = document.getElementById('results');
+            
+            if (!apiKey) {
+                resultsDiv.textContent = '❌ Please enter an API key first';
+                return;
+            }
+            
+            resultsDiv.textContent = 'Testing Google AI Studio API...\n';
+            
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: 'Say hello in 2 words' }] }]
+                    })
+                });
+                
+                resultsDiv.textContent += `Response Status: ${response.status} ${response.statusText}\n\n`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    resultsDiv.textContent += `✅ SUCCESS!\nAPI Response: "${answer}"\n\n`;
+                    resultsDiv.textContent += '🎉 Your API key works with Google AI Studio!\n';
+                    resultsDiv.textContent += 'You can use this key in the AutoType extension.';
+                } else {
+                    const errorText = await response.text();
+                    resultsDiv.textContent += `❌ FAILED\nError: ${errorText}\n\n`;
+                    resultsDiv.textContent += 'Check if your API key is correct and has proper permissions.';
+                }
+            } catch (error) {
+                resultsDiv.textContent += `❌ NETWORK ERROR: ${error.message}`;
+            }
+        }
+        
+        async function testVertexAI() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const projectId = document.getElementById('projectId').value.trim();
+            const resultsDiv = document.getElementById('results');
+            
+            if (!apiKey || !projectId) {
+                resultsDiv.textContent = '❌ Please enter both API key and Project ID';
+                return;
+            }
+            
+            resultsDiv.textContent = `Testing Vertex AI with project: ${projectId}...\n`;
+            
+            try {
+                const endpoint = `https://us-central1-aiplatform.googleapis.com/v1/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-pro:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            role: 'user',
+                            parts: [{ text: 'Say hello in 2 words' }]
+                        }]
+                    })
+                });
+                
+                resultsDiv.textContent += `Response Status: ${response.status} ${response.statusText}\n\n`;
+                
+                if (response.ok) {
+                    const responseText = await response.text();
+                    resultsDiv.textContent += `✅ SUCCESS!\nRaw Response: ${responseText}\n\n`;
+                    resultsDiv.textContent += '🎉 Your API key works with Vertex AI!\n';
+                    resultsDiv.textContent += 'You can use this setup in the AutoType extension.';
+                } else {
+                    const errorText = await response.text();
+                    resultsDiv.textContent += `❌ FAILED\nError: ${errorText}\n\n`;
+                    resultsDiv.textContent += 'Try Google AI Studio instead, or check your Vertex AI setup.';
+                }
+            } catch (error) {
+                resultsDiv.textContent += `❌ NETWORK ERROR: ${error.message}`;
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').textContent = 'Results cleared. Enter API key and test again.';
+        }
+        
+        // Auto-detect API key type
+        document.getElementById('apiKey').addEventListener('input', function() {
+            const key = this.value;
+            if (key.startsWith('AIza') || key.startsWith('AI')) {
+                document.getElementById('results').textContent = '🔍 Detected: Google AI Studio key format';
+            } else if (key.startsWith('AQ.') || key.length > 40) {
+                document.getElementById('results').textContent = '🔍 Detected: Possible Vertex AI key format';
+            }
+        });
+    </script>
+</body>
+</html>

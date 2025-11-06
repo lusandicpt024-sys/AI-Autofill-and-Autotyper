@@ -1005,3 +1005,4 @@ class AutoTypeContent {
 
 // Initialize content script
 new AutoTypeContent();
+
