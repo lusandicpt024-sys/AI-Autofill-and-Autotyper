@@ -1,6 +1,6 @@
 # AutoType - AI-Powered Browser Extensions
 
-Powerful browser extensions for Firefox and Edge/Chrome that provide dual-mode functionality: typing practice automation and AI-powered question answering. Built for educational purposes to learn about browser automation, DOM manipulation, and AI integration.
+Powerful browser extensions for Firefox, Edge/Chrome, and Opera that provide dual-mode functionality: typing practice automation and AI-powered question answering. Built for educational purposes to learn about browser automation, DOM manipulation, and AI integration.
 
 ## 🚀 Features
 
@@ -51,6 +51,15 @@ edge-extension/             # Edge/Chrome extension (Manifest V3)
 ├── background.js          # Service Worker background script
 ├── icons/                 # Extension icons
 └── README.md              # Edge/Chrome-specific documentation
+
+opera-extension/            # Opera extension (Manifest V3)
+├── manifest.json          # Extension configuration (Manifest V3, Opera-optimized)
+├── popup.html             # Dual-mode user interface
+├── popup.js               # UI logic with Chrome API
+├── content.js             # Core functionality with Chrome API
+├── background.js          # Service Worker background script
+├── icons/                 # Extension icons
+└── README.md              # Opera-specific documentation
 ```
 
 ## 🔧 Installation
@@ -75,7 +84,16 @@ edge-extension/             # Edge/Chrome extension (Manifest V3)
 6. Select the `edge-extension/` folder
 7. The AutoType extension icon will appear in your toolbar
 
-### **Step 3: Get API Key (For AI Features)**
+### **For Opera**
+1. Clone or download this repository
+2. Navigate to the `opera-extension/` folder
+3. Open Opera and go to `opera://extensions`
+4. Enable "Developer mode" (toggle in the top right)
+5. Click "Load unpacked"
+6. Select the `opera-extension/` folder
+7. The AutoType extension icon will appear in your toolbar
+
+### **Step 4: Get API Key (For AI Features)**
 - **Option A**: [Google AI Studio](https://makersuite.google.com/app/apikey) (Gemini API)
 - **Option B**: [Vertex AI Studio](https://console.cloud.google.com/vertex-ai/studio) (Google Cloud)
 
@@ -96,21 +114,22 @@ edge-extension/             # Edge/Chrome extension (Manifest V3)
 5. Click "Detect Questions" to scan the page
 6. Review detected questions and click "Answer All"
 
-## 🔄 Firefox vs Edge Extension
+## 🔄 Browser Extensions Comparison
 
-Both extensions provide identical functionality but use different APIs:
+All extensions provide identical functionality but use different APIs:
 
-| Feature | Firefox Extension | Edge/Chrome Extension |
-|---------|------------------|----------------------|
-| Manifest Version | V2 | V3 |
-| API | `browser.*` (WebExtensions) | `chrome.*` (Chrome Extensions) |
-| Background Script | Background page/script | Service Worker |
-| Compatible Browsers | Firefox 88+ | Edge 88+, Chrome 88+, Brave, Opera |
-| Installation Method | `about:debugging` | `edge://extensions` |
+| Feature | Firefox Extension | Edge/Chrome Extension | Opera Extension |
+|---------|------------------|----------------------|-----------------|
+| Manifest Version | V2 | V3 | V3 |
+| API | `browser.*` (WebExtensions) | `chrome.*` (Chrome Extensions) | `chrome.*` (Chrome Extensions) |
+| Background Script | Background page/script | Service Worker | Service Worker |
+| Compatible Browsers | Firefox 88+ | Edge 88+, Chrome 88+, Brave | Opera 74+, Opera GX 74+ |
+| Installation Method | `about:debugging` | `edge://extensions` or `chrome://extensions` | `opera://extensions` |
 
 **Choose the extension based on your browser:**
 - Use `firefox-extension/` for Firefox
-- Use `edge-extension/` for Edge, Chrome, Brave, Opera, or any Chromium-based browser
+- Use `edge-extension/` for Edge, Chrome, Brave, or other Chromium-based browsers
+- Use `opera-extension/` for Opera and Opera GX (optimized for Opera-specific features)
 
 ## 🛡️ Safety Features
 
