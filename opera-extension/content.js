@@ -1,5 +1,5 @@
 /**
- * AutoType Firefox Extension - Content Script
+ * AutoType Opera Extension - Content Script
  * This script runs on web pages to detect text and simulate typing
  */
 
@@ -774,7 +774,7 @@ class AutoTypeContent {
         inputField.click();
         
         // Clear existing content if it's an input/textarea
-        if (inputField.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+        if (inputField.tagName === 'INPUT' || inputField.tagName === 'TEXTAREA') {
             inputField.value = '';
         } else if (inputField.contentEditable === 'true') {
             inputField.textContent = '';
