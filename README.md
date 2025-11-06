@@ -1,6 +1,6 @@
-# AutoType - AI-Powered Firefox Extension
+# AutoType - AI-Powered Browser Extensions
 
-A powerful Firefox browser extension that provides dual-mode functionality: typing practice automation and AI-powered question answering. Built for educational purposes to learn about browser automation, DOM manipulation, and AI integration.
+Powerful browser extensions for Firefox and Edge/Chrome that provide dual-mode functionality: typing practice automation and AI-powered question answering. Built for educational purposes to learn about browser automation, DOM manipulation, and AI integration.
 
 ## 🚀 Features
 
@@ -34,28 +34,46 @@ This extension is designed for educational purposes to learn about:
 ## 📁 Project Structure
 
 ```
-firefox-extension/          # Complete Firefox extension
-├── manifest.json          # Extension configuration
+firefox-extension/          # Firefox extension (Manifest V2)
+├── manifest.json          # Extension configuration (Manifest V2)
 ├── popup.html             # Dual-mode user interface
 ├── popup.js               # UI logic and mode management  
 ├── content.js             # Core functionality and AI integration
 ├── background.js          # Background processes
 ├── icons/                 # Extension icons
-└── README.md              # Extension-specific documentation
+└── README.md              # Firefox-specific documentation
+
+edge-extension/             # Edge/Chrome extension (Manifest V3)
+├── manifest.json          # Extension configuration (Manifest V3)
+├── popup.html             # Dual-mode user interface
+├── popup.js               # UI logic with Chrome API
+├── content.js             # Core functionality with Chrome API
+├── background.js          # Service Worker background script
+├── icons/                 # Extension icons
+└── README.md              # Edge/Chrome-specific documentation
 ```
 
 ## 🔧 Installation
 
-### **Step 1: Download the Extension**
+### **For Firefox**
 1. Clone or download this repository
 2. Navigate to the `firefox-extension/` folder
+3. Open Firefox and go to `about:debugging`
+4. Click "This Firefox" in the sidebar
+5. Click "Load Temporary Add-on..."
+6. Select `manifest.json` from the `firefox-extension/` folder
+7. The AutoType extension icon will appear in your toolbar
 
-### **Step 2: Load in Firefox**
-1. Open Firefox and go to `about:debugging`
-2. Click "This Firefox" in the sidebar
-3. Click "Load Temporary Add-on..."
-4. Select `manifest.json` from the `firefox-extension/` folder
-5. The AutoType extension icon will appear in your toolbar
+### **For Edge/Chrome/Chromium Browsers**
+1. Clone or download this repository
+2. Navigate to the `edge-extension/` folder
+3. Open your browser:
+   - **Edge**: Navigate to `edge://extensions`
+   - **Chrome**: Navigate to `chrome://extensions`
+4. Enable "Developer mode" (toggle in the top right)
+5. Click "Load unpacked"
+6. Select the `edge-extension/` folder
+7. The AutoType extension icon will appear in your toolbar
 
 ### **Step 3: Get API Key (For AI Features)**
 - **Option A**: [Google AI Studio](https://makersuite.google.com/app/apikey) (Gemini API)
@@ -77,6 +95,22 @@ firefox-extension/          # Complete Firefox extension
 4. Enter your API key (first time only)
 5. Click "Detect Questions" to scan the page
 6. Review detected questions and click "Answer All"
+
+## 🔄 Firefox vs Edge Extension
+
+Both extensions provide identical functionality but use different APIs:
+
+| Feature | Firefox Extension | Edge/Chrome Extension |
+|---------|------------------|----------------------|
+| Manifest Version | V2 | V3 |
+| API | `browser.*` (WebExtensions) | `chrome.*` (Chrome Extensions) |
+| Background Script | Background page/script | Service Worker |
+| Compatible Browsers | Firefox 88+ | Edge 88+, Chrome 88+, Brave, Opera |
+| Installation Method | `about:debugging` | `edge://extensions` |
+
+**Choose the extension based on your browser:**
+- Use `firefox-extension/` for Firefox
+- Use `edge-extension/` for Edge, Chrome, Brave, Opera, or any Chromium-based browser
 
 ## 🛡️ Safety Features
 
