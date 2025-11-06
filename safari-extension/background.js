@@ -1,5 +1,5 @@
 /**
- * AutoType Chrome Extension - Background Script
+ * AutoType Safari Extension - Background Script
  * Handles extension lifecycle and cross-tab communication
  */
 
@@ -25,12 +25,19 @@ class AutoTypeBackground {
     
     showWelcomeNotification() {
         // Show a welcome message when extension is installed
-        chrome.notifications.create({
-            type: 'basic',
-            iconUrl: 'icons/icon-48.png',
-            title: 'AutoType Extension Installed',
-            message: 'Educational typing automation tool ready! Click the extension icon to get started.'
-        });
+        // Safari may not support all notification features, so wrap in try-catch
+        if (chrome.notifications && typeof chrome.notifications.create === 'function') {
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon-48.png',
+                title: 'AutoType Extension Installed',
+                message: 'Educational typing automation tool ready! Click the extension icon to get started.'
+            }).catch(err => {
+                console.log('Notification not supported in this browser:', err);
+            });
+        } else {
+            console.log('Notifications API not available');
+        }
     }
     
     handleMessage(message, sender, sendResponse) {

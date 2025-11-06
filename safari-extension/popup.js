@@ -1,5 +1,5 @@
 /**
- * AutoType Chrome Extension - Popup Script
+ * AutoType Safari Extension - Popup Script
  * Educational tool for learning web automation concepts
  */
 
