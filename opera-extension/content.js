@@ -1,5 +1,5 @@
 /**
- * AutoType Firefox Extension - Content Script
+ * AutoType Opera Extension - Content Script
  * This script runs on web pages to detect text and simulate typing
  */
 
@@ -376,7 +376,7 @@ class AutoTypeContent {
     
     init() {
         // Listen for messages from popup
-        browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             this.handleMessage(message, sendResponse);
             return true; // Will respond asynchronously
         });
