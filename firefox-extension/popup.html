@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 350px;
+            padding: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .section {
+            margin-bottom: 15px;
+        }
+        
+        .section h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #444;
+        }
+        
+        .button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .button:hover {
+            background: #45a049;
+        }
+        
+        .button.secondary {
+            background: #2196F3;
+        }
+        
+        .button.secondary:hover {
+            background: #1976D2;
+        }
+        
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .settings {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .setting-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .setting-item label {
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .setting-item input {
+            width: 60px;
+            padding: 3px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .wpm-presets {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .preset-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .preset-btn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .calculated-delays {
+            font-family: monospace;
+        }
+        
+        /* Mode Switcher Styles */
+        .mode-switcher {
+            display: flex;
+            margin: 10px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .mode-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .mode-panel {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* AI Mode Styles */
+        .status-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .status-indicator.configured {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .questions-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+        
+        .question-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        
+        .question-text {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+        
+        .answer-preview {
+            color: #28a745;
+            font-style: italic;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal-header {
+            padding: 20px 20px 10px 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-header h2 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .modal-header p {
+            margin: 0;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .setup-step {
+            margin-bottom: 20px;
+        }
+        
+        .setup-step h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .setup-step p {
+            margin: 5px 0;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .modal-footer {
+            padding: 10px 20px 20px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .validation-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status {
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 5px 0;
+            text-align: center;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .detected-text {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            max-height: 60px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 11px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AutoType</h1>
+        <p>Educational Automation Tool</p>
+    </div>
+    
+    <!-- Mode Switcher -->
+    <div class="mode-switcher">
+        <button id="typingMode" class="mode-btn active">🏃 Typing Test Mode</button>
+        <button id="aiMode" class="mode-btn">🧠 AI Answer Mode</button>
+    </div>
+    
+    <!-- Typing Test Mode Panel (existing functionality) -->
+    <div id="typingTestPanel" class="mode-panel">
+        <div class="section">
+        <h3>Quick Actions</h3>
+        <button id="detectText" class="button">🔍 Detect Text on Page</button>
+        <button id="startTyping" class="button secondary" disabled>⌨️ Start Auto-Typing</button>
+        <button id="debugDetection" class="button" style="background: #ff9800; font-size: 11px; padding: 5px 8px; margin-top: 5px;">🐛 Debug Detection</button>
+    </div>
+    
+    <div id="statusArea"></div>
+    
+    <div id="detectedTextArea" style="display: none;">
+        <h3>Detected Text:</h3>
+        <div id="detectedText" class="detected-text"></div>
+    </div>
+    
+    <div class="section">
+        <h3>Manual Input</h3>
+        <textarea id="manualText" placeholder="Or paste text here to type..." 
+                  style="width: 100%; height: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; font-size: 12px;"></textarea>
+        <button id="typeManual" class="button">Type Manual Text</button>
+    </div>
+    
+    <div class="settings">
+        <h3 style="margin: 0 0 10px 0; font-size: 13px;">Typing Speed Settings</h3>
+        
+        <div class="setting-item" style="margin: 15px 0;">
+            <label style="font-weight: bold; color: #333;">Target WPM:</label>
+            <input type="number" id="targetWpm" value="60" min="10" max="200" style="width: 80px; font-weight: bold; color: #4CAF50;">
+        </div>
+        
+        <div class="wpm-presets" style="margin: 10px 0;">
+            <button class="preset-btn" data-wpm="30">Slow (30)</button>
+            <button class="preset-btn" data-wpm="60">Normal (60)</button>
+            <button class="preset-btn" data-wpm="90">Fast (90)</button>
+            <button class="preset-btn" data-wpm="120">Pro (120)</button>
+        </div>
+        
+        <div class="calculated-delays" style="font-size: 11px; color: #666; margin-top: 10px; padding: 8px; background: #f9f9f9; border-radius: 3px;">
+            <div>Char delay: <span id="calculatedCharDelay">83ms</span></div>
+            <div>Word delay: <span id="calculatedWordDelay">200ms</span></div>
+        </div>
+        
+        <div class="setting-item" style="margin-top: 15px;">
+            <label>Start Delay (s):</label>
+            <input type="number" id="startDelay" value="3" min="0" max="10">
+        </div>
+        
+        <div class="setting-item">
+            <label style="font-size: 11px;">Add randomness:</label>
+            <input type="checkbox" id="addRandomness" checked style="width: auto;">
+        </div>
+        
+        <div class="calibration-section" style="margin-top: 15px; padding: 8px; background: #f0f8ff; border: 1px solid #4CAF50; border-radius: 4px;">
+            <h4 style="margin: 0 0 8px 0; font-size: 12px; color: #2e7d32;">🎯 WPM Calibration</h4>
+            <div class="setting-item">
+                <label style="font-size: 11px;">Speed adjustment:</label>
+                <select id="speedAdjustment" style="width: 80px; font-size: 11px;">
+                    <option value="0.7">Much Slower</option>
+                    <option value="0.85">Slower</option>
+                    <option value="1.0" selected>Normal</option>
+                    <option value="1.15">Faster</option>
+                    <option value="1.3">Much Faster</option>
+                    <option value="1.5">Super Fast</option>
+                </select>
+            </div>
+            <div style="font-size: 10px; color: #666; margin-top: 5px;">
+                Use this if website shows different WPM than target
+            </div>
+        </div>
+    </div>
+    </div> <!-- End Typing Test Panel -->
+    
+    <!-- AI Answer Mode Panel -->
+    <div id="aiAnswerPanel" class="mode-panel" style="display: none;">
+        <div class="section">
+            <h3>AI Setup</h3>
+            <div id="apiKeyStatus" class="status-indicator">
+                <span id="keyStatusText">No API key configured</span>
+                <button id="configureKey" class="button" style="font-size: 11px; padding: 5px 8px;">⚙️ Configure</button>
+            </div>
+        </div>
+        
+        <div class="section" id="aiActions" style="display: none;">
+            <h3>AI Actions</h3>
+            <button id="detectQuestions" class="button">❓ Detect Questions</button>
+            <button id="answerAll" class="button secondary" disabled>🤖 Answer All Questions</button>
+            <button id="previewAnswers" class="button" disabled>👁️ Preview Answers</button>
+        </div>
+        
+        <div id="questionsArea" style="display: none;">
+            <h3>Detected Questions (<span id="questionCount">0</span>)</h3>
+            <div id="questionsList" class="questions-list"></div>
+        </div>
+        
+        <div class="section" id="aiSettings" style="display: none;">
+            <h3>AI Settings</h3>
+            <label>
+                Response Speed:
+                <select id="aiTypingSpeed" style="width: 100%; margin-top: 5px;">
+                    <option value="30">Slow & Careful (30 WPM)</option>
+                    <option value="60" selected>Natural (60 WPM)</option>
+                    <option value="90">Quick (90 WPM)</option>
+                    <option value="120">Fast (120 WPM)</option>
+                </select>
+            </label>
+            <label style="margin-top: 10px; display: flex; align-items: center;">
+                <input type="checkbox" id="reviewBeforeType" checked style="margin-right: 5px;">
+                Review answers before typing
+            </label>
+        </div>
+    </div>
+    
+    <div class="info-box" style="background: #e3f2fd; border: 1px solid #2196F3; border-radius: 4px; padding: 8px; margin: 10px 0; font-size: 11px; color: #1565C0;">
+        💡 <strong>How it works:</strong><br>
+        <span id="typingModeInfo">Set your target WPM and the extension automatically calculates the perfect typing delays. Use presets for common speeds or enter a custom value (10-200 WPM).</span>
+        <span id="aiModeInfo" style="display: none;">Configure your Gemini API key, then detect questions on any webpage. The AI will analyze context and provide intelligent answers that you can review and auto-type.</span>
+    </div>
+    
+    <div class="warning-box">
+        ⚠️ <strong>Educational Use Only</strong><br>
+        Use responsibly and only for learning purposes. Respect website terms of service.
+    </div>
+    
+    <!-- Onboarding Modal -->
+    <div id="onboardingModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🚀 Welcome to AutoType AI!</h2>
+                <p>Set up your Gemini API key to unlock AI-powered question answering</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="setup-step">
+                    <h3>📋 Step 1: Get Your API Key</h3>
+                    <p><strong>Option A:</strong> <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a> (Gemini API)</p>
+                    <p><strong>Option B:</strong> <a href="https://console.cloud.google.com/vertex-ai/studio" target="_blank">Vertex AI Studio</a> (Google Cloud)</p>
+                    <p>Both API key types are supported by this extension</p>
+                </div>
+                
+                <div class="setup-step">
+                    <h3>🔑 Step 2: Enter Your API Key</h3>
+                    <input type="password" id="onboardingApiKey" placeholder="Paste your API key here (Google AI Studio or Vertex AI)..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <div style="margin-top: 5px; font-size: 10px; color: #666;">
+                        🔒 Your API key is stored securely in your browser and never shared
+                    </div>
+                </div>
+                
+                <div id="keyValidation" style="display: none; margin-top: 10px;">
+                    <div class="validation-status">
+                        <span id="validationText">Validating API key...</span>
+                        <div class="spinner" id="validationSpinner"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="skipSetup" class="button secondary">Skip for Now</button>
+                <button id="validateKey" class="button" disabled>Validate & Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
