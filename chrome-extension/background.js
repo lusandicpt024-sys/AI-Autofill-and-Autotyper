@@ -1,5 +1,5 @@
 /**
- * AutoType Edge Extension - Background Script
+ * AutoType Chrome Extension - Background Script
  * Handles extension lifecycle and cross-tab communication
  */
 

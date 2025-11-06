@@ -1,5 +1,5 @@
 /**
- * AutoType Firefox Extension - Content Script
+ * AutoType Chrome Extension - Content Script
  * This script runs on web pages to detect text and simulate typing
  */
 
