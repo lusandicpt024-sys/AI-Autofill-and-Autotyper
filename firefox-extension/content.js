@@ -267,7 +267,7 @@ class AutoTypeContent {
                 
                 // *** THIS IS THE FIX ***
                 // Changed from 'gemini-1.5-flash' to 'gemini-1.5-flash-latest'
-                endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+                endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
                 response = await fetch(endpoint, {
                     method: 'POST',
@@ -774,7 +774,7 @@ class AutoTypeContent {
         inputField.click();
         
         // Clear existing content if it's an input/textarea
-        if (inputField.tagName === 'INPUT' || inputField.tagName === 'TEXTAREA') {
+        if (inputField.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
             inputField.value = '';
         } else if (inputField.contentEditable === 'true') {
             inputField.textContent = '';

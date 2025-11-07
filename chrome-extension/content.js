@@ -6,6 +6,11 @@
 class AutoTypeContent {
     constructor() {
         this.textSelectors = [
+            // MonkeyType specific selectors
+            '#words',               // MonkeyType words container
+            '.words',              // MonkeyType words container (alternative)
+            '#wordsWrapper .words', // MonkeyType nested structure
+            
             // High priority - clean text containers (less likely to have duplication)
             'textarea[readonly]',   // Display-only textareas
             'pre',                  // Preformatted text
@@ -45,6 +50,11 @@ class AutoTypeContent {
         ];
         
         this.inputSelectors = [
+            // MonkeyType specific selectors
+            '#wordsInput',          // MonkeyType main input
+            '.inputField',          // MonkeyType input field
+            'input[style*="opacity: 0"]', // MonkeyType hidden input
+            
             'input[type="text"]',
             'textarea',
             'div[contenteditable="true"]',

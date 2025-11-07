@@ -8,7 +8,8 @@
     "activeTab",
     "storage",
     "clipboardRead",
-    "clipboardWrite"
+    "clipboardWrite",
+    "notifications"
   ],
   
   "host_permissions": [

@@ -24,13 +24,33 @@ class AutoTypeBackground {
     }
     
     showWelcomeNotification() {
-        // Show a welcome message when extension is installed
-        chrome.notifications.create({
-            type: 'basic',
-            iconUrl: 'icons/icon-48.png',
-            title: 'AutoType Extension Installed',
-            message: 'Educational typing automation tool ready! Click the extension icon to get started.'
-        });
+        // Check if notifications API is available
+        if (!chrome.notifications) {
+            console.error('chrome.notifications API is not available');
+            return;
+        }
+        
+        try {
+            // Show a welcome message when extension is installed
+            chrome.notifications.create('autotype-welcome', {
+                type: 'basic',
+                iconUrl: 'icons/icon-48.png',
+                title: 'AutoType Extension Installed',
+                message: 'Educational typing automation tool ready! Click the extension icon to get started.'
+            }, (notificationId) => {
+                if (chrome.runtime.lastError) {
+                    console.error('Notification error:', chrome.runtime.lastError.message || chrome.runtime.lastError);
+                    // Fallback: just log the welcome message
+                    console.log('AutoType Extension: Welcome! Extension is ready to use.');
+                } else {
+                    console.log('Welcome notification created:', notificationId);
+                }
+            });
+        } catch (error) {
+            console.error('Error creating notification:', error);
+            // Fallback: just log the welcome message
+            console.log('AutoType Extension: Welcome! Extension is ready to use.');
+        }
     }
     
     handleMessage(message, sender, sendResponse) {

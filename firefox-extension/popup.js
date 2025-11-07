@@ -270,7 +270,7 @@ class AutoTypePopup {
                 
                 // *** THIS IS THE FIX ***
                 // Changed from 'gemini-1.5-flash' to 'gemini-1.5-flash-latest'
-                endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+                endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
                 
                 response = await fetch(endpoint, {
                     method: 'POST',
