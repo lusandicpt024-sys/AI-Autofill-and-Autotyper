@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "AutoType Educational Tool",
-  "version": "1.0",
+  "version": "1.0.2",
   "description": "Educational typing automation tool for learning web automation concepts",
   
   "permissions": [
     "activeTab",
     "storage",
     "clipboardRead",
-    "clipboardWrite"
+    "clipboardWrite",
+    "notifications"
   ],
   
   "host_permissions": [
