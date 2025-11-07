@@ -10,13 +10,21 @@
    - Select `manifest.json` from the `firefox-extension` folder
 2. **Extension Icon**: Look for the AutoType icon in your Firefox toolbar
 
-### For Edge/Chrome
+### For Chrome
 1. **Load Extension**:
-   - Open Edge (`edge://extensions`) or Chrome (`chrome://extensions`)
+   - Open Chrome and navigate to `chrome://extensions`
+   - Enable "Developer mode" (toggle in top right)
+   - Click "Load unpacked"
+   - Select the `chrome-extension` folder
+2. **Extension Icon**: Look for the AutoType icon in your Chrome toolbar
+
+### For Edge
+1. **Load Extension**:
+   - Open Edge and navigate to `edge://extensions`
    - Enable "Developer mode" (toggle in top right)
    - Click "Load unpacked"
    - Select the `edge-extension` folder
-2. **Extension Icon**: Look for the AutoType icon in your browser toolbar
+2. **Extension Icon**: Look for the AutoType icon in your Edge toolbar
 
 ### For Opera
 1. **Load Extension**:
@@ -34,14 +42,21 @@
    - Select the `brave-extension` folder
 2. **Extension Icon**: Look for the AutoType icon in your Brave toolbar
 
+### For Safari
+1. **Load Extension**:
+   - Open Safari and navigate to Safari > Settings > Extensions
+   - Enable "AutoType Educational Tool" (after conversion to Safari App Extension)
+   - Select the `safari-extension` folder (requires Xcode conversion)
+2. **Extension Icon**: Look for the AutoType icon in your Safari toolbar
+
 ## 🔧 First-Time Setup
 
 When you first open the extension, you'll see an onboarding modal:
 
 ### Option 1: Enable AI Features
 1. Click "Setup AI Features"
-2. Get a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-3. Paste your API key and click "Validate & Save"
+2. Get an OpenAI API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+3. Paste your API key (starts with `sk-`) and click "Validate & Continue"
 4. Once validated, you're ready to use both modes!
 
 ### Option 2: Skip AI Setup
@@ -61,7 +76,7 @@ When you first open the extension, you'll see an onboarding modal:
 
 ### AI Answer Mode (New)
 - **Purpose**: Detect questions and auto-generate answers
-- **Requirements**: Valid Gemini API key
+- **Requirements**: Valid OpenAI API key
 - **Workflow**:
   1. Navigate to a page with questions/forms
   2. Switch to "AI Answer" mode
@@ -89,9 +104,9 @@ The extension automatically detects:
 ## ⚙️ Settings & Configuration
 
 ### API Key Management
-- **View Status**: Check if API key is configured
+- **View Status**: Check if OpenAI API key is configured
 - **Update Key**: Change or reset your API key
-- **Validation**: Automatic testing with Gemini API
+- **Validation**: Automatic testing with OpenAI API
 
 ### AI Settings
 - **Typing Speed**: 30-120 WPM for AI responses
@@ -105,7 +120,7 @@ The extension automatically detects:
 
 ## 🛡️ Privacy & Security
 
-- **API Key Storage**: Securely stored in Firefox's encrypted storage
+- **API Key Storage**: Securely stored in browser's encrypted storage
 - **No Data Collection**: Questions and answers not logged
 - **Local Processing**: All detection happens in your browser
 - **Optional AI**: Can be used without AI features
@@ -120,9 +135,10 @@ The extension automatically detects:
 - Check browser console for errors
 
 **API Key Issues**:
-- Verify key is valid at Google AI Studio
+- Verify key is valid at OpenAI Platform
 - Check internet connection
-- Ensure Gemini API is enabled for your account
+- Ensure OpenAI API has sufficient credits
+- Check if key starts with 'sk-'
 
 **Question Detection Problems**:
 - Try refreshing the page
@@ -157,7 +173,7 @@ The extension can detect various question formats:
 - "List..." / "Compare..." / "Analyze..."
 
 ### API Optimization
-- Responses optimized for form length
+- Responses optimized for form length using GPT-3.5-turbo
 - Context awareness for better accuracy
 - Automatic length adjustment based on input type
 

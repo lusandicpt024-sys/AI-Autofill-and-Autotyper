@@ -1,5 +1,5 @@
 /**
- * AutoType Safari Extension - Popup Script
+ * AutoType Chrome Extension - Popup Script
  * Educational tool for learning web automation concepts
  */
 
@@ -10,10 +10,8 @@ class AutoTypePopup {
         this.currentMode = 'typing'; // 'typing' or 'ai'
         this.detectedQuestions = [];
         
-        // AI credentials
-        this.apiKey = null;
-        this.projectId = null;
-        this.location = null;
+        // OpenAI credentials
+        this.openaiApiKey = null;
         
         this.settings = {
             targetWpm: 60,
@@ -124,29 +122,24 @@ class AutoTypePopup {
     // API Key Management
     async loadCredentials() {
         try {
-            const result = await chrome.storage.sync.get(['geminiApiKey', 'geminiProjectId', 'geminiLocation']);
-            this.apiKey = result.geminiApiKey;
-            this.projectId = result.geminiProjectId;
-            this.location = result.geminiLocation;
-            this.updateApiKeyStatus();
+            const result = await chrome.storage.sync.get(['openaiApiKey']);
+            this.openaiApiKey = result.openaiApiKey;
         } catch (error) {
-            console.error('Error loading API credentials:', error);
+            console.log('AutoType: Error loading credentials:', error);
         }
     }
 
-    isVertexAI(key) {
-        // Updated detection: Vertex keys are often long base64 strings
-        return key && key.length > 40;
+    isOpenAIKey(key) {
+        // OpenAI API keys start with 'sk-' and are typically 48-51 characters long
+        return key && key.startsWith('sk-') && key.length >= 40;
     }
 
     checkApiKeyFormat(key) {
-        const vertexFields = document.getElementById('vertexFields');
-        if (this.isVertexAI(key)) {
-            vertexFields.style.display = 'block';
-        } else {
-            vertexFields.style.display = 'none';
+        // No additional fields needed for OpenAI - just the API key
+        const validFormat = this.isOpenAIKey(key);
+        if (!validFormat && key) {
+            console.warn('API key does not appear to be a valid OpenAI key (should start with sk-)');
         }
-        document.getElementById('validateKey').disabled = key.trim().length < 10;
     }
     
     updateApiKeyStatus() {
@@ -155,15 +148,15 @@ class AutoTypePopup {
         const aiActions = document.getElementById('aiActions');
         const aiSettings = document.getElementById('aiSettings');
         
-        if (this.apiKey) {
-            const keyType = this.isVertexAI(this.apiKey) ? 'Vertex AI' : 'AI Studio';
-            statusText.textContent = `${keyType} key configured ✓`;
+        if (this.openaiApiKey) {
+            const maskedKey = `sk-...${this.openaiApiKey.slice(-4)}`;
+            statusText.textContent = `OpenAI key configured: ${maskedKey} ✓`;
             statusText.style.color = '#28a745';
             configureBtn.textContent = '🔄 Update';
             aiActions.style.display = 'block';
             aiSettings.style.display = 'block';
         } else {
-            statusText.textContent = 'No API key configured';
+            statusText.textContent = 'No OpenAI API key configured';
             statusText.style.color = '#dc3545';
             configureBtn.textContent = '⚙️ Configure';
             aiActions.style.display = 'none';
@@ -172,7 +165,7 @@ class AutoTypePopup {
     }
     
     async showOnboardingIfNeeded() {
-        if (!this.apiKey) {
+        if (!this.openaiApiKey) {
             const result = await chrome.storage.sync.get('skipOnboarding');
             if (!result.skipOnboarding) {
                 this.showOnboardingModal();
@@ -193,18 +186,13 @@ class AutoTypePopup {
     showApiKeyModal() {
         // Reuse onboarding modal for API key configuration
         this.showOnboardingModal();
-        if (this.apiKey) {
-            document.getElementById('onboardingApiKey').value = this.apiKey;
-            document.getElementById('onboardingProjectId').value = this.projectId || '';
-            document.getElementById('onboardingLocation').value = this.location || '';
-            this.checkApiKeyFormat(this.apiKey); // Show/hide Vertex fields
+        if (this.openaiApiKey) {
+            document.getElementById('onboardingApiKey').value = this.openaiApiKey;
         }
     }
     
     async validateApiKey() {
         const apiKey = document.getElementById('onboardingApiKey').value.trim();
-        const projectId = document.getElementById('onboardingProjectId').value.trim();
-        const location = document.getElementById('onboardingLocation').value.trim();
 
         if (!apiKey) return;
         
@@ -214,108 +202,43 @@ class AutoTypePopup {
         const validateBtn = document.getElementById('validateKey');
         
         validationDiv.style.display = 'block';
-        validationText.textContent = 'Validating API key...';
+        validationText.textContent = 'Validating OpenAI API key...';
         validationText.style.color = '#333';
         spinner.style.display = 'block';
         validateBtn.disabled = true;
         
         try {
-            const isVertex = this.isVertexAI(apiKey);
-            
-            let response;
-            let endpoint = '';
-            
-            if (isVertex) {
-                // Test Vertex AI key
-                if (!projectId || !location) {
-                    throw new Error('Project ID and Location are required for Vertex AI');
-                }
-                console.log(`AutoType: Testing Vertex AI key for project ${projectId} in ${location}`);
-                // Use the correct REGIONAL endpoint
-                endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-1.5-flash:streamGenerateContent`;
-                
-                response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}` // Vertex AI often uses Bearer tokens (OAuth), but API keys are also possible. Let's try key first.
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            role: 'user',
-                            parts: [{ text: 'Hello' }]
-                        }]
-                    })
-                });
-
-                // If auth fails, try with ?key= param
-                if (response.status === 401 || response.status === 403) {
-                     console.log('AutoType: Auth failed with Bearer token, retrying with API key parameter');
-                     endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
-                     response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                role: 'user',
-                                parts: [{ text: 'Hello' }]
-                            }]
-                        })
-                    });
-                }
-
-            } else {
-                // Test Gemini AI Studio key
-                console.log('AutoType: Testing Google AI Studio key');
-                
-                // *** THIS IS THE FIX ***
-                // Changed from 'gemini-1.5-flash' to 'gemini-1.5-flash-latest'
-                endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-                
-                response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: 'Hello' }] }]
-                    })
-                });
+            // Validate OpenAI API key format
+            if (!this.isOpenAIKey(apiKey)) {
+                throw new Error('Invalid OpenAI API key format. Key should start with "sk-"');
             }
             
-            if (response && response.ok) {
-                // Test if we can parse the response
-                const responseText = await response.text();
-                if (responseText.trim().length === 0) {
-                     throw new Error('Empty response from API server');
-                }
-
-                try {
-                    if (isVertex) {
-                        // Vertex AI stream response is a JSON array
-                        const data = JSON.parse(responseText);
-                        if (data && Array.isArray(data) && data.length > 0 && data[0].candidates) {
-                            validationText.textContent = '✅ Vertex AI key validated successfully!';
-                        } else {
-                            throw new Error('Invalid Vertex AI response format');
-                        }
-                    } else {
-                        // AI Studio response is a single JSON object
-                        const data = JSON.parse(responseText);
-                        if (data.candidates && data.candidates.length > 0) {
-                            validationText.textContent = '✅ Gemini AI key validated successfully!';
-                        } else {
-                            throw new Error('Invalid AI Studio response format');
-                        }
-                    }
+            console.log('AutoType: Testing OpenAI API key');
+            
+            // Test OpenAI API key with a simple completion
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [{ role: 'user', content: 'Hello' }],
+                    max_tokens: 5
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.choices && data.choices.length > 0) {
+                    validationText.textContent = '✅ OpenAI API key validated successfully!';
                     
                     // Save the credentials
                     await chrome.storage.sync.set({ 
-                        geminiApiKey: apiKey,
-                        geminiProjectId: isVertex ? projectId : null,
-                        geminiLocation: isVertex ? location : null
+                        openaiApiKey: apiKey
                     });
-                    this.apiKey = apiKey;
-                    this.projectId = isVertex ? projectId : null;
-                    this.location = isVertex ? location : null;
+                    this.openaiApiKey = apiKey;
                     
                     validationText.style.color = '#28a745';
                     spinner.style.display = 'none';
@@ -327,22 +250,20 @@ class AutoTypePopup {
                             this.switchToAiMode();
                         }
                     }, 1500);
-
-                } catch (parseError) {
-                    console.error('Validation parse error:', parseError, 'Response Text:', responseText);
-                    throw new Error('Unexpected response format');
+                } else {
+                    throw new Error('Invalid OpenAI response format');
                 }
             } else {
-                const errorText = await response.text();
-                console.error('API Error Response:', errorText);
-                throw new Error(`API validation failed: ${response.status} ${response.statusText}`);
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = (errorData.error && errorData.error.message) || `API validation failed: ${response.status} ${response.statusText}`;
+                throw new Error(errorMessage);
             }
         } catch (error) {
-            validationText.textContent = `❌ ${error.message}. Check credentials/console.`;
+            validationText.textContent = `❌ ${error.message}`;
             validationText.style.color = '#dc3545';
             spinner.style.display = 'none';
             validateBtn.disabled = false;
-            console.error('API key validation error:', error);
+            console.error('OpenAI API key validation error:', error);
         }
     }
     
@@ -404,9 +325,7 @@ class AutoTypePopup {
                 const result = await chrome.tabs.sendMessage(tab.id, {
                     action: 'answerQuestion',
                     question: question,
-                    apiKey: this.apiKey,
-                    projectId: this.projectId,
-                    location: this.location
+                    apiKey: this.apiKey
                 });
                 
                 if (result.answer) {
@@ -469,9 +388,7 @@ class AutoTypePopup {
                     const result = await chrome.tabs.sendMessage(tab.id, {
                         action: 'answerQuestion',
                         question: question,
-                        apiKey: this.apiKey,
-                        projectId: this.projectId,
-                        location: this.location
+                        apiKey: this.apiKey
                     });
                     
                     if (!result.answer) {

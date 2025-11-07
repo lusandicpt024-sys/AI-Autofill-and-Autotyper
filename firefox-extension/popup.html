@@ -499,7 +499,7 @@
     <div class="info-box" style="background: #e3f2fd; border: 1px solid #2196F3; border-radius: 4px; padding: 8px; margin: 10px 0; font-size: 11px; color: #1565C0;">
         💡 <strong>How it works:</strong><br>
         <span id="typingModeInfo">Set your target WPM and the extension automatically calculates the perfect typing delays. Use presets for common speeds or enter a custom value (10-200 WPM).</span>
-        <span id="aiModeInfo" style="display: none;">Configure your Gemini API key, then detect questions on any webpage. The AI will analyze context and provide intelligent answers that you can review and auto-type.</span>
+        <span id="aiModeInfo" style="display: none;">Configure your OpenAI API key, then detect questions on any webpage. The AI will analyze context and provide intelligent answers that you can review and auto-type.</span>
     </div>
     
     <div class="warning-box">
@@ -511,28 +511,22 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>🚀 Welcome to AutoType AI!</h2>
-                <p>Set up your Gemini API key to unlock AI-powered question answering</p>
+                <p>Set up your OpenAI API key to unlock AI-powered question answering</p>
             </div>
             
             <div class="modal-body">
                 <div class="setup-step">
                     <h3>📋 Step 1: Get Your API Key</h3>
-                    <p><strong>Option A:</strong> <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a> (Gemini API)</p>
-                    <p><strong>Option B:</strong> <a href="https://console.cloud.google.com/vertex-ai/studio" target="_blank">Vertex AI Studio</a> (Google Cloud)</p>
-                    <p>Both API key types are supported by this extension</p>
+                    <p><strong>OpenAI API:</strong> <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></p>
+                    <p>Create an account and generate an API key to use GPT-3.5-turbo for intelligent question answering</p>
                 </div>
                 
                 <div class="setup-step">
-                    <h3>🔑 Step 2: Enter Your Credentials</h3>
-                    <input type="password" id="onboardingApiKey" placeholder="Paste your API key here (Google AI Studio or Vertex AI)..." class="modal-input" style="margin-bottom: 10px;">
-                    
-                    <div id="vertexFields" style="display: none;">
-                        <input type="text" id="onboardingProjectId" placeholder="Enter your Google Cloud Project ID..." class="modal-input">
-                        <input type="text" id="onboardingLocation" placeholder="Enter Location (e.g., us-central1)..." class="modal-input">
-                    </div>
+                    <h3>🔑 Step 2: Enter Your API Key</h3>
+                    <input type="password" id="onboardingApiKey" placeholder="Paste your OpenAI API key here (sk-...)..." class="modal-input" style="margin-bottom: 10px;">
                     
                     <div style="margin-top: 5px; font-size: 10px; color: #666;">
-                        🔒 Your credentials are stored securely in your browser and never shared
+                        🔒 Your API key is stored securely in your browser and never shared
                     </div>
                 </div>
                 

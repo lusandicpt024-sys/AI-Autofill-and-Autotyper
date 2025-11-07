@@ -1,11 +1,16 @@
 /**
- * AutoType Firefox Extension - Content Script
+ * AutoType Chrome Extension - Content Script
  * This script runs on web pages to detect text and simulate typing
  */
 
 class AutoTypeContent {
     constructor() {
         this.textSelectors = [
+            // MonkeyType specific selectors
+            '#words',               // MonkeyType words container
+            '.words',              // MonkeyType words container (alternative)
+            '#wordsWrapper .words', // MonkeyType nested structure
+            
             // High priority - clean text containers (less likely to have duplication)
             'textarea[readonly]',   // Display-only textareas
             'pre',                  // Preformatted text
@@ -45,6 +50,20 @@ class AutoTypeContent {
         ];
         
         this.inputSelectors = [
+            // MonkeyType specific selectors
+            '#wordsInput',          // MonkeyType main input
+            '.inputField',          // MonkeyType input field
+            'input[style*="opacity: 0"]', // MonkeyType hidden input
+            
+            // Common typing test selectors
+            '#typing-input',        // Common ID
+            '.typing-input',        // Common class
+            'input[placeholder*="type"]', // Input with "type" in placeholder
+            'input[placeholder*="Type"]', // Input with "Type" in placeholder
+            'textarea[placeholder*="type"]', // Textarea with "type" in placeholder
+            'input[class*="test"]', // Input with "test" in class name
+            'textarea[class*="test"]', // Textarea with "test" in class name
+            
             'input[type="text"]',
             'textarea',
             'div[contenteditable="true"]',
@@ -53,7 +72,13 @@ class AutoTypeContent {
             '.typing-area input',
             '[data-testid="typing-input"]',
             'input[class*="typing"]',
-            'textarea[class*="typing"]'
+            'textarea[class*="typing"]',
+            
+            // Fallback selectors
+            'input:not([type="hidden"]):not([type="submit"]):not([type="button"])',
+            'textarea:not([readonly])',
+            '[contenteditable="true"]',
+            '[contenteditable=""]'
         ];
         
         this.init();
@@ -229,111 +254,46 @@ class AutoTypeContent {
         return selector;
     }
     
-    async queryGeminiAPI(question, context, apiKey, projectId, location) {
+    async queryOpenAIAPI(question, context, apiKey) {
         const prompt = `Context: ${context}\n\nQuestion: ${question}\n\nProvide a direct, concise answer suitable for typing into a form field. Keep it under 500 characters unless it's clearly an essay question.`;
         
         try {
-            // Detect if this is a Vertex AI key
-            const isVertexAI = apiKey && apiKey.length > 40;
-            
-            let response;
-            let endpoint = '';
-            
-            if (isVertexAI) {
-                // Use correct Vertex AI API endpoint
-                if (!projectId || !location) {
-                    throw new Error('Vertex AI requires Project ID and Location');
-                }
-                console.log('AutoType AI: Using Vertex AI endpoint');
-                endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
-                
-                response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [{
+            console.log('AutoType AI: Using OpenAI API');
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        {
                             role: 'user',
-                            parts: [{
-                                text: prompt
-                            }]
-                        }]
-                    })
-                });
-            } else {
-                // Use Gemini AI Studio endpoint (original)
-                console.log('AutoType AI: Using Gemini AI Studio endpoint');
-                
-                // *** THIS IS THE FIX ***
-                // Changed from 'gemini-1.5-flash' to 'gemini-1.5-flash-latest'
-                endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
-                response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: prompt
-                            }]
-                        }]
-                    })
-                });
-            }
+                            content: prompt
+                        }
+                    ],
+                    max_tokens: 500,
+                    temperature: 0.7
+                })
+            });
             
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('API Error Response:', errorText);
-                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                console.error('OpenAI API Error Response:', errorText);
+                throw new Error(`OpenAI API request failed: ${response.status} - ${errorText}`);
             }
 
-            const responseText = await response.text();
-            if (responseText.trim().length === 0) {
-                 throw new Error('Empty response from API server');
+            const data = await response.json();
+            const answer = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+            
+            if (!answer) {
+                throw new Error('No answer received from OpenAI API');
             }
             
-            if (isVertexAI) {
-                // *** FIX: Handle Vertex AI streaming response ***
-                // It returns a JSON array of response chunks.
-                console.log('Vertex AI Response:', responseText);
-                
-                let fullText = '';
-                try {
-                    const responseArray = JSON.parse(responseText);
-                    
-                    for (const chunk of responseArray) {
-                        const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (text) {
-                            fullText += text;
-                        }
-                    }
-                } catch (e) {
-                    console.error('Could not parse Vertex AI response array:', e, responseText);
-                    throw new Error('Failed to parse Vertex AI response');
-                }
-                
-                if (!fullText) {
-                    throw new Error('No answer received from Vertex AI');
-                }
-                
-                return fullText.trim();
-
-            } else {
-                // Handle regular Gemini AI Studio response
-                const data = JSON.parse(responseText);
-                const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (!answer) {
-                    throw new Error('No answer received from API');
-                }
-                
-                return answer.trim();
-            }
+            return answer.trim();
         } catch (error) {
-            console.error('Gemini API Error:', error);
+            console.error('OpenAI API Error:', error);
             throw error;
         }
     }
@@ -376,7 +336,7 @@ class AutoTypeContent {
     
     init() {
         // Listen for messages from popup
-        browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             this.handleMessage(message, sendResponse);
             return true; // Will respond asynchronously
         });
@@ -407,12 +367,10 @@ class AutoTypeContent {
                     
                 case 'answerQuestion':
                     try {
-                        const answer = await this.queryGeminiAPI(
+                        const answer = await this.queryOpenAIAPI(
                             message.question.text,
                             message.question.context,
-                            message.apiKey,
-                            message.projectId, // Pass Project ID
-                            message.location  // Pass Location
+                            message.apiKey
                         );
                         sendResponse({answer: answer});
                     } catch (error) {
@@ -728,38 +686,75 @@ class AutoTypeContent {
     }
     
     findInputField() {
+        console.log('AutoType: Looking for input field...');
+        
         // Try specific input selectors first
         for (const selector of this.inputSelectors) {
             const element = document.querySelector(selector);
-            if (element && this.isValidInput(element)) {
-                return element;
+            if (element) {
+                console.log(`Found element with selector "${selector}":`, element);
+                if (this.isValidInput(element)) {
+                    console.log('✓ Valid input found:', element);
+                    return element;
+                } else {
+                    console.log('✗ Input not valid (hidden/disabled):', element);
+                }
             }
         }
         
         // Fallback: find any visible input/textarea
+        console.log('Trying fallback input detection...');
         const inputs = document.querySelectorAll('input, textarea, [contenteditable="true"]');
+        console.log(`Found ${inputs.length} potential input elements`);
+        
         for (const input of inputs) {
+            console.log('Checking input:', input, 'Valid:', this.isValidInput(input));
             if (this.isValidInput(input)) {
+                console.log('✓ Valid fallback input found:', input);
                 return input;
             }
         }
         
+        // Last resort: try to find ANY input that might work (less strict)
+        console.log('Trying less strict input detection...');
+        const allInputs = document.querySelectorAll('input, textarea, [contenteditable="true"], [contenteditable=""]');
+        for (const input of allInputs) {
+            const style = window.getComputedStyle(input);
+            if (style.display !== 'none' && !input.disabled) {
+                console.log('✓ Less strict input found:', input);
+                return input;
+            }
+        }
+        
+        console.log('✗ No input field found');
         return null;
     }
     
     isValidInput(element) {
+        if (!element) return false;
+        
         // Check if element is visible and interactable
         const style = window.getComputedStyle(element);
         if (style.display === 'none' || style.visibility === 'hidden') {
             return false;
         }
         
-        // Check if it's not disabled
-        if (element.disabled || element.readOnly) {
+        // Check if it's not disabled (but allow readonly for some typing tests)
+        if (element.disabled) {
             return false;
         }
         
-        return true;
+        // For contenteditable, check if it's actually editable
+        if (element.contentEditable === 'true' || element.contentEditable === '') {
+            return true;
+        }
+        
+        // For input/textarea, allow even if readonly (some typing tests use readonly)
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            return true;
+        }
+        
+        return false;
     }
     
     async startTyping(text, settings) {
@@ -774,7 +769,7 @@ class AutoTypeContent {
         inputField.click();
         
         // Clear existing content if it's an input/textarea
-        if (inputField.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+        if (inputField.tagName === 'INPUT' || inputField.tagName === 'TEXTAREA') {
             inputField.value = '';
         } else if (inputField.contentEditable === 'true') {
             inputField.textContent = '';

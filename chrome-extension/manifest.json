@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AutoType Educational Tool",
-  "version": "1.0",
-  "description": "Educational typing automation tool for learning web automation concepts",
+  "version": "2.0",
+  "description": "Educational typing automation tool powered by OpenAI - Learn web automation concepts",
   
   "permissions": [
     "activeTab",
@@ -14,8 +14,7 @@
   
   "host_permissions": [
     "<all_urls>",
-    "https://generativelanguage.googleapis.com/*",
-    "https://aiplatform.googleapis.com/*"
+    "https://api.openai.com/*"
   ],
   
   "background": {

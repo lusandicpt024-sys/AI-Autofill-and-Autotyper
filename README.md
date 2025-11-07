@@ -11,7 +11,7 @@ Powerful browser extensions for Firefox, Edge/Chrome, and Opera that provide dua
 ### 🤖 **AI-Powered Question Detection**
 - Automatically detects 8+ question patterns on any webpage
 - Smart proximity-based input field pairing
-- Context-aware answer generation using Vertex AI
+- Context-aware answer generation using OpenAI GPT-3.5-turbo
 - Support for multiple input types (text, textarea, contenteditable)
 
 ### ⚡ **Advanced Auto-Typing**
@@ -152,8 +152,8 @@ safari-extension/           # Safari extension (Manifest V3)
 **Note:** Safari requires extensions to be converted to Safari App Extension format. See `safari-extension/README.md` for detailed instructions.
 
 ### **Step 4: Get API Key (For AI Features)**
-- **Option A**: [Google AI Studio](https://makersuite.google.com/app/apikey) (Gemini API)
-- **Option B**: [Vertex AI Studio](https://console.cloud.google.com/vertex-ai/studio) (Google Cloud)
+- **OpenAI API**: [OpenAI Platform](https://platform.openai.com/api-keys) (Recommended)
+- Create an account and generate an API key to use GPT-3.5-turbo for intelligent question answering
 
 ## 🎯 Usage
 
@@ -168,7 +168,7 @@ safari-extension/           # Safari extension (Manifest V3)
 1. Navigate to a page with questions or forms
 2. Click the AutoType extension icon  
 3. Switch to "AI Answer" mode
-4. Enter your API key (first time only)
+4. Enter your OpenAI API key (first time only)
 5. Click "Detect Questions" to scan the page
 6. Review detected questions and click "Answer All"
 
@@ -198,7 +198,7 @@ All extensions provide identical functionality but use different APIs:
 - **Emergency stop**: Move mouse to corner or press Ctrl+C
 - **Review mode**: Preview AI answers before typing
 - **Speed control**: Adjustable WPM for realistic typing
-- **Secure storage**: API keys encrypted in browser
+- **Secure storage**: OpenAI API keys encrypted in browser
 
 ## 🔍 Supported Question Types
 

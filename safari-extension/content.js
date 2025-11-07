@@ -1,5 +1,5 @@
 /**
- * AutoType Safari Extension - Content Script
+ * AutoType Chrome Extension - Content Script
  * This script runs on web pages to detect text and simulate typing
  */
 
@@ -72,7 +72,13 @@ class AutoTypeContent {
             '.typing-area input',
             '[data-testid="typing-input"]',
             'input[class*="typing"]',
-            'textarea[class*="typing"]'
+            'textarea[class*="typing"]',
+            
+            // Fallback selectors
+            'input:not([type="hidden"]):not([type="submit"]):not([type="button"])',
+            'textarea:not([readonly])',
+            '[contenteditable="true"]',
+            '[contenteditable=""]'
         ];
         
         this.init();
@@ -248,111 +254,46 @@ class AutoTypeContent {
         return selector;
     }
     
-    async queryGeminiAPI(question, context, apiKey, projectId, location) {
+    async queryOpenAIAPI(question, context, apiKey) {
         const prompt = `Context: ${context}\n\nQuestion: ${question}\n\nProvide a direct, concise answer suitable for typing into a form field. Keep it under 500 characters unless it's clearly an essay question.`;
         
         try {
-            // Detect if this is a Vertex AI key
-            const isVertexAI = apiKey && apiKey.length > 40;
-            
-            let response;
-            let endpoint = '';
-            
-            if (isVertexAI) {
-                // Use correct Vertex AI API endpoint
-                if (!projectId || !location) {
-                    throw new Error('Vertex AI requires Project ID and Location');
-                }
-                console.log('AutoType AI: Using Vertex AI endpoint');
-                endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-1.5-flash:streamGenerateContent?key=${apiKey}`;
-                
-                response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [{
+            console.log('AutoType AI: Using OpenAI API');
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        {
                             role: 'user',
-                            parts: [{
-                                text: prompt
-                            }]
-                        }]
-                    })
-                });
-            } else {
-                // Use Gemini AI Studio endpoint (original)
-                console.log('AutoType AI: Using Gemini AI Studio endpoint');
-                
-                // *** THIS IS THE FIX ***
-                // Changed from 'gemini-1.5-flash' to 'gemini-1.5-flash-latest'
-                endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
-                response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: prompt
-                            }]
-                        }]
-                    })
-                });
-            }
+                            content: prompt
+                        }
+                    ],
+                    max_tokens: 500,
+                    temperature: 0.7
+                })
+            });
             
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('API Error Response:', errorText);
-                throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                console.error('OpenAI API Error Response:', errorText);
+                throw new Error(`OpenAI API request failed: ${response.status} - ${errorText}`);
             }
 
-            const responseText = await response.text();
-            if (responseText.trim().length === 0) {
-                 throw new Error('Empty response from API server');
+            const data = await response.json();
+            const answer = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+            
+            if (!answer) {
+                throw new Error('No answer received from OpenAI API');
             }
             
-            if (isVertexAI) {
-                // *** FIX: Handle Vertex AI streaming response ***
-                // It returns a JSON array of response chunks.
-                console.log('Vertex AI Response:', responseText);
-                
-                let fullText = '';
-                try {
-                    const responseArray = JSON.parse(responseText);
-                    
-                    for (const chunk of responseArray) {
-                        const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (text) {
-                            fullText += text;
-                        }
-                    }
-                } catch (e) {
-                    console.error('Could not parse Vertex AI response array:', e, responseText);
-                    throw new Error('Failed to parse Vertex AI response');
-                }
-                
-                if (!fullText) {
-                    throw new Error('No answer received from Vertex AI');
-                }
-                
-                return fullText.trim();
-
-            } else {
-                // Handle regular Gemini AI Studio response
-                const data = JSON.parse(responseText);
-                const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (!answer) {
-                    throw new Error('No answer received from API');
-                }
-                
-                return answer.trim();
-            }
+            return answer.trim();
         } catch (error) {
-            console.error('Gemini API Error:', error);
+            console.error('OpenAI API Error:', error);
             throw error;
         }
     }
@@ -426,12 +367,10 @@ class AutoTypeContent {
                     
                 case 'answerQuestion':
                     try {
-                        const answer = await this.queryGeminiAPI(
+                        const answer = await this.queryOpenAIAPI(
                             message.question.text,
                             message.question.context,
-                            message.apiKey,
-                            message.projectId, // Pass Project ID
-                            message.location  // Pass Location
+                            message.apiKey
                         );
                         sendResponse({answer: answer});
                     } catch (error) {
