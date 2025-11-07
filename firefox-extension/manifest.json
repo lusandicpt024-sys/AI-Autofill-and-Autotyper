@@ -4,7 +4,12 @@
   "version": "1.0",
   "description": "Educational typing automation tool for learning web automation concepts",
   
-  "host_permissions": [
+  "permissions": [
+    "activeTab",
+    "storage",
+    "clipboardRead",
+    "clipboardWrite",
+    "notifications",
     "<all_urls>",
     "https://api.openai.com/*"
   ],

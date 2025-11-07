@@ -105,7 +105,7 @@ class AutoTypePopup {
     }
     
     switchToAiMode() {
-        if (!this.apiKey) {
+        if (!this.openaiApiKey) {
             this.showApiKeyModal();
             return;
         }
@@ -137,8 +137,15 @@ class AutoTypePopup {
     checkApiKeyFormat(key) {
         // No additional fields needed for OpenAI - just the API key
         const validFormat = this.isOpenAIKey(key);
-        if (!validFormat && key) {
-            console.warn('API key does not appear to be a valid OpenAI key (should start with sk-)');
+        const validateBtn = document.getElementById('validateKey');
+        
+        if (validFormat) {
+            validateBtn.disabled = false;
+        } else {
+            validateBtn.disabled = true;
+            if (key) {
+                console.warn('API key does not appear to be a valid OpenAI key (should start with sk-)');
+            }
         }
     }
     
@@ -325,7 +332,7 @@ class AutoTypePopup {
                 const result = await chrome.tabs.sendMessage(tab.id, {
                     action: 'answerQuestion',
                     question: question,
-                    apiKey: this.apiKey
+                    apiKey: this.openaiApiKey
                 });
                 
                 if (result.answer) {
@@ -388,7 +395,7 @@ class AutoTypePopup {
                     const result = await chrome.tabs.sendMessage(tab.id, {
                         action: 'answerQuestion',
                         question: question,
-                        apiKey: this.apiKey
+                        apiKey: this.openaiApiKey
                     });
                     
                     if (!result.answer) {

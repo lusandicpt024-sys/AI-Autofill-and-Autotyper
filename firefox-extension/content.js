@@ -336,7 +336,7 @@ class AutoTypeContent {
     
     init() {
         // Listen for messages from popup
-        chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             this.handleMessage(message, sendResponse);
             return true; // Will respond asynchronously
         });

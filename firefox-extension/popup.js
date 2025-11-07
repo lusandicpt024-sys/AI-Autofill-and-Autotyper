@@ -105,7 +105,7 @@ class AutoTypePopup {
     }
     
     switchToAiMode() {
-        if (!this.apiKey) {
+        if (!this.openaiApiKey) {
             this.showApiKeyModal();
             return;
         }
@@ -122,7 +122,7 @@ class AutoTypePopup {
     // API Key Management
     async loadCredentials() {
         try {
-            const result = await chrome.storage.sync.get(['openaiApiKey']);
+            const result = await browser.storage.sync.get(['openaiApiKey']);
             this.openaiApiKey = result.openaiApiKey;
         } catch (error) {
             console.log('AutoType: Error loading credentials:', error);
@@ -137,8 +137,15 @@ class AutoTypePopup {
     checkApiKeyFormat(key) {
         // No additional fields needed for OpenAI - just the API key
         const validFormat = this.isOpenAIKey(key);
-        if (!validFormat && key) {
-            console.warn('API key does not appear to be a valid OpenAI key (should start with sk-)');
+        const validateBtn = document.getElementById('validateKey');
+        
+        if (validFormat) {
+            validateBtn.disabled = false;
+        } else {
+            validateBtn.disabled = true;
+            if (key) {
+                console.warn('API key does not appear to be a valid OpenAI key (should start with sk-)');
+            }
         }
     }
     
@@ -166,7 +173,7 @@ class AutoTypePopup {
     
     async showOnboardingIfNeeded() {
         if (!this.openaiApiKey) {
-            const result = await chrome.storage.sync.get('skipOnboarding');
+            const result = await browser.storage.sync.get('skipOnboarding');
             if (!result.skipOnboarding) {
                 this.showOnboardingModal();
             }
@@ -180,7 +187,7 @@ class AutoTypePopup {
     
     hideOnboardingModal() {
         document.getElementById('onboardingModal').style.display = 'none';
-        chrome.storage.sync.set({ skipOnboarding: true });
+        browser.storage.sync.set({ skipOnboarding: true });
     }
     
     showApiKeyModal() {
@@ -235,7 +242,7 @@ class AutoTypePopup {
                     validationText.textContent = '✅ OpenAI API key validated successfully!';
                     
                     // Save the credentials
-                    await chrome.storage.sync.set({ 
+                    await browser.storage.sync.set({ 
                         openaiApiKey: apiKey
                     });
                     this.openaiApiKey = apiKey;
@@ -272,8 +279,8 @@ class AutoTypePopup {
         this.showStatus('Detecting questions on page...', 'warning');
         
         try {
-            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-            const result = await chrome.tabs.sendMessage(tab.id, { action: 'detectQuestions' });
+            const [tab] = await browser.tabs.query({active: true, currentWindow: true});
+            const result = await browser.tabs.sendMessage(tab.id, { action: 'detectQuestions' });
             
             if (result.questions) {
                 this.detectedQuestions = result.questions;
@@ -321,11 +328,11 @@ class AutoTypePopup {
             const question = this.detectedQuestions[i];
             
             try {
-                const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-                const result = await chrome.tabs.sendMessage(tab.id, {
+                const [tab] = await browser.tabs.query({active: true, currentWindow: true});
+                const result = await browser.tabs.sendMessage(tab.id, {
                     action: 'answerQuestion',
                     question: question,
-                    apiKey: this.apiKey
+                    apiKey: this.openaiApiKey
                 });
                 
                 if (result.answer) {
@@ -384,11 +391,11 @@ class AutoTypePopup {
             try {
                 // Get answer if not already generated
                 if (!question.answer || question.answer.startsWith('Error:')) {
-                    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-                    const result = await chrome.tabs.sendMessage(tab.id, {
+                    const [tab] = await browser.tabs.query({active: true, currentWindow: true});
+                    const result = await browser.tabs.sendMessage(tab.id, {
                         action: 'answerQuestion',
                         question: question,
-                        apiKey: this.apiKey
+                        apiKey: this.openaiApiKey
                     });
                     
                     if (!result.answer) {
@@ -398,8 +405,8 @@ class AutoTypePopup {
                 }
                 
                 // Type the answer
-                const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-                await chrome.tabs.sendMessage(tab.id, {
+                const [tab] = await browser.tabs.query({active: true, currentWindow: true});
+                await browser.tabs.sendMessage(tab.id, {
                     action: 'typeAIAnswer',
                     inputSelector: question.inputField,
                     answer: question.answer,
@@ -425,9 +432,9 @@ class AutoTypePopup {
         this.showStatus('Detecting text on page...', 'warning');
         
         try {
-            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+            const [tab] = await browser.tabs.query({active: true, currentWindow: true});
             
-            const result = await chrome.tabs.sendMessage(tab.id, {
+            const result = await browser.tabs.sendMessage(tab.id, {
                 action: 'detectText'
             });
             
@@ -472,9 +479,9 @@ class AutoTypePopup {
         this.showStatus(`Typing at ${this.settings.targetWpm} WPM...`, 'warning');
         
         try {
-            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+            const [tab] = await browser.tabs.query({active: true, currentWindow: true});
             
-            await chrome.tabs.sendMessage(tab.id, {
+            await browser.tabs.sendMessage(tab.id, {
                 action: 'startTyping',
                 text: this.currentText,
                 settings: this.settings
@@ -589,7 +596,7 @@ class AutoTypePopup {
     }
     
     loadSettings() {
-        chrome.storage.local.get(['autoTypeSettings']).then((result) => {
+        browser.storage.local.get(['autoTypeSettings']).then((result) => {
             if (result.autoTypeSettings) {
                 this.settings = {...this.settings, ...result.autoTypeSettings};
                 this.updateUI();
@@ -598,7 +605,7 @@ class AutoTypePopup {
     }
     
     saveSettings() {
-        chrome.storage.local.set({
+        browser.storage.local.set({
             autoTypeSettings: this.settings
         });
     }
@@ -611,9 +618,9 @@ class AutoTypePopup {
         this.showStatus('Running debug detection...', 'warning');
         
         try {
-            const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+            const [tab] = await browser.tabs.query({active: true, currentWindow: true});
             
-            const result = await chrome.tabs.sendMessage(tab.id, {
+            const result = await browser.tabs.sendMessage(tab.id, {
                 action: 'debugDetection'
             });
             
