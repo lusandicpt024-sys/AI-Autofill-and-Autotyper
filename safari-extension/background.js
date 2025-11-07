@@ -24,19 +24,58 @@ class AutoTypeBackground {
     }
     
     showWelcomeNotification() {
-        // Show a welcome message when extension is installed
-        // Safari may not support all notification features, so wrap in try-catch
-        if (chrome.notifications && typeof chrome.notifications.create === 'function') {
-            chrome.notifications.create({
+        // Check if notifications API is available
+        if (!chrome.notifications) {
+            console.log('AutoType Safari Extension: Welcome! Extension is ready to use.');
+            return;
+        }
+        
+        try {
+            // First, try with icon
+            const notificationOptions = {
                 type: 'basic',
-                iconUrl: 'icons/icon-48.png',
                 title: 'AutoType Extension Installed',
                 message: 'Educational typing automation tool ready! Click the extension icon to get started.'
-            }).catch(err => {
-                console.log('Notification not supported in this browser:', err);
+            };
+            
+            // Try to add icon - if this fails, we'll fall back to no icon
+            try {
+                notificationOptions.iconUrl = chrome.runtime.getURL('icons/icon-48.png');
+            } catch (iconError) {
+                console.warn('Could not load icon for notification:', iconError);
+            }
+            
+            chrome.notifications.create('autotype-welcome-safari', notificationOptions, (notificationId) => {
+                if (chrome.runtime.lastError) {
+                    console.error('Notification error:', chrome.runtime.lastError.message || chrome.runtime.lastError);
+                    
+                    // If icon caused the issue, try again without icon
+                    const errorMessage = chrome.runtime.lastError.message || '';
+                    if (errorMessage.includes('image') || errorMessage.includes('download') || errorMessage.includes('icon')) {
+                        console.log('Retrying notification without icon...');
+                        chrome.notifications.create('autotype-welcome-safari-noicon', {
+                            type: 'basic',
+                            title: 'AutoType Extension Installed',
+                            message: 'Educational typing automation tool ready! Click the extension icon to get started.'
+                        }, (retryNotificationId) => {
+                            if (chrome.runtime.lastError) {
+                                console.log('AutoType Safari Extension: Welcome! Extension is ready to use.');
+                            } else {
+                                console.log('Welcome notification created (no icon):', retryNotificationId);
+                            }
+                        });
+                    } else {
+                        // Fallback: just log the welcome message
+                        console.log('AutoType Safari Extension: Welcome! Extension is ready to use.');
+                    }
+                } else {
+                    console.log('Welcome notification created:', notificationId);
+                }
             });
-        } else {
-            console.log('Notifications API not available');
+        } catch (error) {
+            console.error('Error creating notification:', error);
+            // Fallback: just log the welcome message
+            console.log('AutoType Safari Extension: Welcome! Extension is ready to use.');
         }
     }
     
