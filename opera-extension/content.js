@@ -6,6 +6,11 @@
 class AutoTypeContent {
     constructor() {
         this.textSelectors = [
+            // MonkeyType specific selectors
+            '#words',               // MonkeyType words container
+            '.words',              // MonkeyType words container (alternative)
+            '#wordsWrapper .words', // MonkeyType nested structure
+            
             // High priority - clean text containers (less likely to have duplication)
             'textarea[readonly]',   // Display-only textareas
             'pre',                  // Preformatted text
@@ -45,6 +50,20 @@ class AutoTypeContent {
         ];
         
         this.inputSelectors = [
+            // MonkeyType specific selectors
+            '#wordsInput',          // MonkeyType main input
+            '.inputField',          // MonkeyType input field
+            'input[style*="opacity: 0"]', // MonkeyType hidden input
+            
+            // Common typing test selectors
+            '#typing-input',        // Common ID
+            '.typing-input',        // Common class
+            'input[placeholder*="type"]', // Input with "type" in placeholder
+            'input[placeholder*="Type"]', // Input with "Type" in placeholder
+            'textarea[placeholder*="type"]', // Textarea with "type" in placeholder
+            'input[class*="test"]', // Input with "test" in class name
+            'textarea[class*="test"]', // Textarea with "test" in class name
+            
             'input[type="text"]',
             'textarea',
             'div[contenteditable="true"]',
@@ -728,38 +747,75 @@ class AutoTypeContent {
     }
     
     findInputField() {
+        console.log('AutoType: Looking for input field...');
+        
         // Try specific input selectors first
         for (const selector of this.inputSelectors) {
             const element = document.querySelector(selector);
-            if (element && this.isValidInput(element)) {
-                return element;
+            if (element) {
+                console.log(`Found element with selector "${selector}":`, element);
+                if (this.isValidInput(element)) {
+                    console.log('✓ Valid input found:', element);
+                    return element;
+                } else {
+                    console.log('✗ Input not valid (hidden/disabled):', element);
+                }
             }
         }
         
         // Fallback: find any visible input/textarea
+        console.log('Trying fallback input detection...');
         const inputs = document.querySelectorAll('input, textarea, [contenteditable="true"]');
+        console.log(`Found ${inputs.length} potential input elements`);
+        
         for (const input of inputs) {
+            console.log('Checking input:', input, 'Valid:', this.isValidInput(input));
             if (this.isValidInput(input)) {
+                console.log('✓ Valid fallback input found:', input);
                 return input;
             }
         }
         
+        // Last resort: try to find ANY input that might work (less strict)
+        console.log('Trying less strict input detection...');
+        const allInputs = document.querySelectorAll('input, textarea, [contenteditable="true"], [contenteditable=""]');
+        for (const input of allInputs) {
+            const style = window.getComputedStyle(input);
+            if (style.display !== 'none' && !input.disabled) {
+                console.log('✓ Less strict input found:', input);
+                return input;
+            }
+        }
+        
+        console.log('✗ No input field found');
         return null;
     }
     
     isValidInput(element) {
+        if (!element) return false;
+        
         // Check if element is visible and interactable
         const style = window.getComputedStyle(element);
         if (style.display === 'none' || style.visibility === 'hidden') {
             return false;
         }
         
-        // Check if it's not disabled
-        if (element.disabled || element.readOnly) {
+        // Check if it's not disabled (but allow readonly for some typing tests)
+        if (element.disabled) {
             return false;
         }
         
-        return true;
+        // For contenteditable, check if it's actually editable
+        if (element.contentEditable === 'true' || element.contentEditable === '') {
+            return true;
+        }
+        
+        // For input/textarea, allow even if readonly (some typing tests use readonly)
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            return true;
+        }
+        
+        return false;
     }
     
     async startTyping(text, settings) {

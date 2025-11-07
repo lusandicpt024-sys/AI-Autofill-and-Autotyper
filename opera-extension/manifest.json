@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AutoType Educational Tool",
-  "version": "1.0",
+  "version": "1.0.3",
   "description": "Educational typing automation tool for learning web automation concepts",
   "author": "Educational Project",
   "homepage_url": "https://github.com/lusandicpt024-sys/AI-Autofill-and-Autotyper",
@@ -10,7 +10,8 @@
     "activeTab",
     "storage",
     "clipboardRead",
-    "clipboardWrite"
+    "clipboardWrite",
+    "notifications"
   ],
   
   "host_permissions": [
