@@ -34,7 +34,7 @@ class AutoTypeBackground {
             // Show a welcome message when extension is installed
             chrome.notifications.create('autotype-welcome', {
                 type: 'basic',
-                iconUrl: 'icons/icon-48.png',
+                iconUrl: chrome.runtime.getURL('icons/icon-48.png'), // Use chrome.runtime.getURL for proper path
                 title: 'AutoType Extension Installed',
                 message: 'Educational typing automation tool ready! Click the extension icon to get started.'
             }, (notificationId) => {
