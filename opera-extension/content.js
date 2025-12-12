@@ -6,6 +6,13 @@
 class AutoTypeContent {
     constructor() {
         this.textSelectors = [
+            // LiveChat typing speed test selectors
+            '.typing-speed-test-area .text-to-type',  // LiveChat typing test area
+            '.typing-test-content',                    // LiveChat content area
+            '[data-testid="typing-text"]',            // LiveChat test text
+            '.test-text-container',                   // LiveChat text container
+            '.typing-area .typing-text',              // LiveChat typing area text
+            
             // MonkeyType specific selectors
             '#words',               // MonkeyType words container
             '.words',              // MonkeyType words container (alternative)
@@ -400,8 +407,110 @@ class AutoTypeContent {
         }
     }
     
+    detectSiteSpecificText() {
+        const hostname = window.location.hostname.toLowerCase();
+        const pathname = window.location.pathname.toLowerCase();
+        
+        // LiveChat typing speed test
+        if (hostname.includes('livechat.com') && pathname.includes('typing-speed-test')) {
+            return this.detectLiveChatText();
+        }
+        
+        // Add more site-specific detectors here as needed
+        // if (hostname.includes('10fastfingers.com')) {
+        //     return this.detect10FastFingersText();
+        // }
+        
+        return null;
+    }
+    
+    detectLiveChatText() {
+        console.log('AutoType: Detecting LiveChat typing test text...');
+        
+        // Try various selectors that might contain the typing test text
+        const liveChatSelectors = [
+            // Look for the text content area specifically
+            'div[style*="white"]:not(:has(a)):not(:has(button))', // White background divs without links/buttons
+            'div[style*="background"]:not(:has(nav)):not(:has(header))', // Background divs without navigation
+            '.typing-test div:not(:has(a))', // Typing test areas without links
+            'main div:not(:has(a)):not(:has(button))', // Main content without interactive elements
+            '[class*="test"] div:not(:has(a))', // Test-related divs without links
+            
+            // More specific attempts
+            'div > div[style]:not(:has(span > a))', // Styled divs without navigation links
+            'div[style*="padding"]:not(:has(nav))', // Padded divs without navigation
+            'p:not(:has(a))', // Paragraphs without links
+            
+            // Fallback to any substantial text block that doesn't contain navigation
+            'div:not(:has(a)):not(:has(button)):not(:has(nav)):not(:has(header))'
+        ];
+        
+        for (const selector of liveChatSelectors) {
+            try {
+                const elements = document.querySelectorAll(selector);
+                console.log(`Trying LiveChat selector "${selector}" - found ${elements.length} elements`);
+                
+                for (const element of elements) {
+                    const text = this.extractTextFromElement(element);
+                    const cleanedText = this.cleanText(text);
+                    
+                    // Check if this looks like typing test text
+                    if (this.isLiveChatTypingText(cleanedText)) {
+                        console.log(`LiveChat text found: "${cleanedText.substring(0, 100)}..."`);
+                        return cleanedText;
+                    }
+                }
+            } catch (error) {
+                console.log(`Error with selector "${selector}":`, error);
+            }
+        }
+        
+        return null;
+    }
+    
+    isLiveChatTypingText(text) {
+        if (!text || text.length < 20) return false;
+        
+        // Should not contain navigation/header text
+        const navigationKeywords = [
+            'livechat', 'product', 'pricing', 'integrations', 'customers', 'resources',
+            'log in', 'sign up', 'watch on youtube', 'typing speed test', 'how to type faster',
+            'customer support', 'discover', 'chatbot', 'helpdesk', 'knowledgebase'
+        ];
+        
+        const textLower = text.toLowerCase();
+        const hasNavigation = navigationKeywords.some(keyword => textLower.includes(keyword));
+        
+        if (hasNavigation) {
+            console.log(`Rejected text (contains navigation): "${text.substring(0, 50)}..."`);
+            return false;
+        }
+        
+        // Should look like natural text for typing
+        const wordCount = text.split(/\s+/).length;
+        const hasProperWords = /\b(the|and|of|to|a|in|is|it|you|that|he|was|for|on|are|as|with|his|they|at|be|this|have|from|or|one|had|by|word|but|not|what|all|were|we|when|your|can|said|there|each|which|she|do|how|their|if|will|up|other|about|out|many|then|them|these|so|some|her|would|make|like|into|him|has|two|more|go|no|way|could|my|than|first|been|call|who|its|now|find|long|down|day|did|get|come|made|may|part)\b/i.test(text);
+        
+        // Should be substantial and look like continuous text
+        const isValid = wordCount >= 15 && hasProperWords && text.length >= 50;
+        
+        if (isValid) {
+            console.log(`Valid LiveChat typing text found: ${wordCount} words`);
+        } else {
+            console.log(`Invalid text: wordCount=${wordCount}, hasProperWords=${hasProperWords}, length=${text.length}`);
+        }
+        
+        return isValid;
+    }
+    
     detectTextToType() {
         console.log('AutoType: Starting text detection...');
+        
+        // Site-specific detection first
+        const siteSpecificText = this.detectSiteSpecificText();
+        if (siteSpecificText) {
+            console.log(`AutoType: Found site-specific text: ${siteSpecificText.substring(0, 50)}...`);
+            return siteSpecificText;
+        }
         
         // Method 1: Try specific typing test selectors
         for (const selector of this.textSelectors) {
